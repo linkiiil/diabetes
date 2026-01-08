@@ -159,3 +159,10 @@ with st.expander("🔍 Ver Estratégia de Triagem e Matriz de Confusão"):
             st.warning("⚠️ Arquivo 'Confusion Matrix.svg' não encontrado no repositório.")
             st.info("Dica: Verifique se o arquivo está na raiz do GitHub com este nome exato.")
 
+st.info("""
+### ℹ️ Por que coletamos dados socioeconômicos?
+Este modelo baseia-se em estudos do **CDC (Centers for Disease Control and Prevention)**, que indicam que fatores como **escolaridade e renda** são preditores importantes para o risco de diabetes. 
+
+Isso ocorre porque o contexto socioeconômico impacta diretamente o acesso a alimentos frescos, a prática de atividades físicas e a frequência de exames preventivos. Esses dados nos ajudam a criar um perfil de risco mais preciso e humano.
+""")
+
