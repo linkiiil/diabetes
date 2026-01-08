@@ -3,10 +3,36 @@ import joblib
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import pytz  # Necessário: pip install pytz
+import pytz
 
 # 1. Configuração da Interface
 st.set_page_config(page_title="Triagem Inteligente de Diabetes", layout="wide")
+
+# --- CUSTOMIZAÇÃO VISUAL (NAVY BLUE) ---
+st.markdown("""
+    <style>
+    /* Cor do botão de submissão do formulário */
+    button[kind="primaryFormSubmit"] {
+        background-color: #000080 !important;
+        color: white !important;
+        border: none !important;
+    }
+    button[kind="primaryFormSubmit"]:hover {
+        background-color: #0000a0 !important;
+        color: white !important;
+    }
+    /* Estilo do botão de download */
+    div.stDownloadButton > button {
+        background-color: #f0f2f6;
+        color: #000080;
+        border: 1px solid #000080;
+    }
+    div.stDownloadButton > button:hover {
+        background-color: #000080;
+        color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # 2. Carregamento do Modelo
 @st.cache_resource
@@ -75,8 +101,8 @@ with st.form("form_clinico"):
 
     with col2:
         st.subheader("Histórico Clínico")
-        high_bp = st.checkbox("Pressão Alta?")
-        high_chol = st.checkbox("Colesterol Alto?")
+        high_bp = st.checkbox("Possui Pressão Alta?")
+        high_chol = st.checkbox("Possui Colesterol Alto?")
         chol_check = st.checkbox("Exame de colesterol (últimos 5 anos)?")
         stroke = st.checkbox("Já teve AVC?")
         heart_dis = st.checkbox("Doença Cardíaca ou Infarto?")
@@ -120,7 +146,7 @@ if submit:
     ==================================================
     RELATÓRIO DE TRIAGEM PREVENTIVA - DIABETES (IA)
     ==================================================
-    Data: {data_atual}
+    Data: {data_atual} (Brasília)
     Risco Estimado: {prob:.1%}
     Status: {"ALTO RISCO" if prob >= threshold_clinico else "BAIXO RISCO"}
     --------------------------------------------------
@@ -139,7 +165,7 @@ if submit:
     st.download_button(
         label="📥 Baixar Relatório Clínico (.txt)",
         data=texto_relatorio,
-        file_name=f"relatorio_diabetes_{datetime.now().strftime('%Y%m%d')}.txt",
+        file_name=f"relatorio_diabetes_{datetime.now(fuso_br).strftime('%Y%m%d_%H%M')}.txt",
         mime="text/plain"
     )
     st.caption("Para salvar em PDF: Abra o relatório baixado e use a opção 'Imprimir -> Salvar como PDF'.")
@@ -158,3 +184,4 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
             st.warning("SVG da Matriz não encontrado no repositório.")
 
 st.caption("Aviso: Ferramenta de triagem estatística. Não substitui diagnóstico médico.")
+
