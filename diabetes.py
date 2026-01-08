@@ -159,10 +159,12 @@ with st.expander("🔍 Ver Estratégia de Triagem e Matriz de Confusão"):
             st.warning("⚠️ Arquivo 'Confusion Matrix.svg' não encontrado no repositório.")
             st.info("Dica: Verifique se o arquivo está na raiz do GitHub com este nome exato.")
 
-st.info("""
-### ℹ️ Por que coletamos dados socioeconômicos?
-Este modelo baseia-se em estudos do **CDC (Centers for Disease Control and Prevention)**, que indicam que fatores como **escolaridade e renda** são preditores importantes para o risco de diabetes. 
-
-Isso ocorre porque o contexto socioeconômico impacta diretamente o acesso a alimentos frescos, a prática de atividades físicas e a frequência de exames preventivos. Esses dados nos ajudam a criar um perfil de risco mais preciso e humano.
-""")
-
+with st.expander("📝 Nota Metodológica: Por que essas perguntas?"):
+    st.markdown("""
+    Este formulário segue os critérios internacionais de triagem do **CDC (Centers for Disease Control and Prevention)**. Algumas perguntas podem parecer curiosas, mas possuem justificativa técnica:
+    
+    * **💰 Aspectos Socioeconômicos:** Renda e educação são "Determinantes Sociais de Saúde". Eles influenciam o acesso a alimentos frescos e a frequência de exames preventivos.
+    * **🚬 Os 100 Cigarros:** Este é o marco clínico global para distinguir o uso social do **tabagismo estabelecido**, ponto onde o risco metabólico aumenta significativamente.
+    * **🏃 Atividade Física:** O critério de "últimos 30 dias" busca identificar o **comportamento sedentário**. Praticar uma vez não o torna um "marombeiro", mas não praticar nenhuma vez é um forte sinal de alerta.
+    * **🏥 Custo e Plano de Saúde:** Mesmo quem possui plano de saúde pode enfrentar custos impeditivos (coparticipação, medicamentos), o que leva ao adiamento de cuidados críticos.
+    """)
