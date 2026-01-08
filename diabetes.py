@@ -200,6 +200,7 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
         except:
             st.warning("SVG da Matriz não encontrado no repositório.")
 
-st.caption("Aviso: Ferramenta de triagem estatística. Não substitui diagnóstico médico.
+st.caption("Aviso: Ferramenta de triagem estatística. Não substitui diagnóstico médico.")
+
 
 
