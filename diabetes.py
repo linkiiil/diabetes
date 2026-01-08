@@ -130,27 +130,32 @@ if submit:
 
         st.success(f"RESULTADO: BAIXO RISCO (Abaixo do Threshold de {threshold_clinico*100:.0f}%)")
 
-# --- SEÇÃO DE TRANSPARÊNCIA TÉCNICA ---
+# --- SEÇÃO DE TRANSPARÊNCIA TÉCNICA (ARQUIVO SVG) ---
 st.divider()
-with st.expander("🔍 Ver Detalhes Técnicos e Matriz de Confusão"):
-    st.write("### Estratégia de Triagem")
-    st.markdown("""
-    Para este projeto, priorizamos a **Sensibilidade (Recall)**. Isso significa que o modelo é configurado 
-    para não deixar passar casos reais de diabetes, mesmo que isso aumente o número de exames confirmatórios.
-    """)
+with st.expander("🔍 Ver Estratégia de Triagem e Matriz de Confusão"):
+    st.write("### Fundamentação da Estratégia Clínica")
     
-    col_text, col_img = st.columns([1, 2])
+    col_text, col_img = st.columns([1, 1.5])
     
     with col_text:
-        st.write("**Métricas Finais (Threshold 0.25):**")
-        st.write("- **Recall:** 94.86%")
-        st.write("- **Casos Identificados:** 6.658")
-        st.write("- **Falsos Negativos:** 361")
+        st.markdown(f"""
+        **Métricas de Performance:**
+        * **Recall (Sensibilidade):** 94.86%
+        * **Diabetes Identificadas:** 6.658
+        * **Falsos Negativos:** 361
+        
+        **Justificativa do Threshold (0.25):**
+        Para o MBA, definimos que o erro de um 'falso alarme' é menos custoso para a saúde pública 
+        do que o erro de ignorar um paciente diabético. Por isso, calibramos o modelo para ser 
+        altamente sensível.
+        """)
     
     with col_img:
-        # Tenta carregar a imagem que você subiu no GitHub
+        # Busca o arquivo SVG que você salvou no GitHub
+        # Certifique-se de que o nome do arquivo abaixo seja exatamente igual ao do GitHub
         try:
-            st.image("Confusion Matrix.png", caption="Matriz de Confusão: Estratégia de Triagem")
-        except:
-            st.warning("Arquivo 'Confusion Matrix.png' não encontrado no repositório.")
+            st.image("Confusion Matrix.svg", use_container_width=True, caption="Matriz de Confusão Vetorial (SVG)")
+        except Exception as e:
+            st.warning("⚠️ Arquivo 'Confusion Matrix.svg' não encontrado no repositório.")
+            st.info("Dica: Verifique se o arquivo está na raiz do GitHub com este nome exato.")
 
