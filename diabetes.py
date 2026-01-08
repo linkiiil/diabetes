@@ -8,28 +8,47 @@ import pytz
 # 1. Configuração da Interface
 st.set_page_config(page_title="Triagem Inteligente de Diabetes", layout="wide")
 
-# --- CUSTOMIZAÇÃO VISUAL: TROCANDO VERMELHO POR AZUL ---
+# --- CUSTOMIZAÇÃO VISUAL (NAVY & LIGHT BLUE) ---
 st.markdown("""
     <style>
-    /* Muda a cor do botão principal (Submit) */
+    /* 1. Botão Principal (Submit) */
     button[kind="primaryFormSubmit"] {
         background-color: #000080 !important;
         color: white !important;
+        border: none !important;
     }
-    
-    /* Muda a cor dos Checkboxes e Radio Buttons para Azul */
-    .stCheckbox [data-testid="stWidgetLabel"] p, .stRadio [data-testid="stWidgetLabel"] p {
-        color: #000080;
-    }
-    
-    /* Cor do marcador e da trilha do Slider */
-    .stSlider [data-testid="stTickBarMin"], .stSlider [data-testid="stTickBarMax"] {
-        color: #000080;
+    button[kind="primaryFormSubmit"]:hover {
+        background-color: #0000a0 !important;
     }
 
-    /* Força o preenchimento do slider e checks para azul (Injeção de variáveis de tema) */
+    /* 2. Cor dos Checkboxes e Radio Buttons (Marcadores) */
+    /* Muda a cor da borda/preenchimento quando selecionado */
+    input[type="checkbox"]:checked + div {
+        background-color: #000080 !important;
+        border-color: #000080 !important;
+    }
+    div[data-baseweb="radio"] div[aria-checked="true"] > div {
+        background-color: #000080 !important;
+    }
+    
+    /* 3. Slider (Barra de Saúde Geral) */
+    div[data-basicslider="true"] > div {
+        background-color: #000080 !important;
+    }
+    /* Ajuste global para cores primárias do tema via CSS */
     :root {
         --primary-color: #000080;
+    }
+    
+    /* 4. Estilo do botão de download */
+    div.stDownloadButton > button {
+        background-color: #f0f2f6;
+        color: #000080;
+        border: 1px solid #000080;
+    }
+    div.stDownloadButton > button:hover {
+        background-color: #000080;
+        color: white;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -45,78 +64,142 @@ def carregar_modelo():
 
 data = carregar_modelo()
 if data is None:
-    st.error("Erro crítico: Modelo não encontrado.")
+    st.error("Erro crítico: Arquivo 'modelo_diabetes_vtl.pkl' não encontrado.")
     st.stop()
 
 modelo = data['pipeline']
 threshold_clinico = data.get('threshold', 0.25)
 
-# --- TIMEZONE BRASIL ---
+# --- AJUSTE DE TIMEZONE (BRASIL) ---
 fuso_br = pytz.timezone('America/Sao_Paulo')
 data_atual = datetime.now(fuso_br).strftime('%d/%m/%Y %H:%M')
 
-# 3. Cabeçalho
+# 3. Cabeçalho e Nota Metodológica
 st.title("🏥 Sistema de Apoio à Decisão Clínica: Diabetes")
-st.markdown(f"**Data da Consulta:** {data_atual} (Brasília)")
+st.markdown(f"**Analista Responsável:** Portal de Triagem Preventiva | **Data:** {data_atual} (Horário de Brasília)")
 
-with st.expander("📝 Nota Metodológica"):
-    st.write("Explicação sobre determinantes sociais e critérios do CDC.")
+with st.expander("📝 Nota Metodológica: Por que essas perguntas são necessárias?"):
+    st.markdown("""
+    Este sistema utiliza o padrão epidemiológico do **CDC**. Algumas perguntas possuem justificativas técnicas:
+    
+    * **💰 Socioeconômicos:** Renda e educação impactam o acesso a alimentos de qualidade e exames.
+    * **🚬 100 Cigarros:** Marco clínico para distinguir uso social de **tabagismo estabelecido**.
+    * **🏃 Atividade Física:** Identifica sedentarismo, um marcador crítico de risco metabólico.
+    * **🏥 Custo:** Avalia barreiras financeiras que impedem o diagnóstico precoce.
+    """)
 
-# 4. Formulário
+# 4. Formulário de Entrada
 with st.form("form_clinico"):
     col1, col2 = st.columns(2)
 
     with col1:
         st.subheader("Perfil e Estilo de Vida")
-        age = st.selectbox("Faixa etária", options=list(range(1,14)), format_func=lambda x: f"Opção {x}")
-        income = st.selectbox("Renda Familiar", options=list(range(1,9)))
-        education = st.selectbox("Escolaridade", options=list(range(1,7)))
+        
+        opcoes_age = {1:"18-24", 2:"25-29", 3:"30-34", 4:"35-39", 5:"40-44", 6:"45-49", 
+                      7:"50-54", 8:"55-59", 9:"60-64", 10:"65-69", 11:"70-74", 12:"75-79", 13:"80+"}
+        age = st.selectbox("Faixa etária", options=list(opcoes_age.keys()), format_func=lambda x: opcoes_age[x])
+
+        opcoes_inc = {1:"Até $10k", 2:"$10k-$15k", 3:"$15k-$20k", 4:"$20k-$25k", 5:"$25k-$35k", 6:"$35k-$50k", 7:"$50k-$75k", 8:"$75k+"}
+        income = st.selectbox("Faixa de Renda Anual (USD)", options=list(opcoes_inc.keys()), format_func=lambda x: opcoes_inc[x])
+
+        opcoes_edu = {1:"Fundamental incompleto", 2:"Fundamental", 3:"Médio incompleto", 4:"Médio completo", 5:"Técnico/Superior inc.", 6:"Graduado"}
+        education = st.selectbox("Escolaridade", options=list(opcoes_edu.keys()), format_func=lambda x: opcoes_edu[x])
+
         sex = st.radio("Sexo Biológico", options=[0, 1], format_func=lambda x: "Feminino" if x==0 else "Masculino")
         
-        # Slider de Saúde (agora em Azul)
-        gen_hlth = st.select_slider("Como avalia sua saúde geral?", options=[1, 2, 3, 4, 5], 
-                                   format_func=lambda x: {1:"Excelente", 5:"Ruim"}.get(x, x))
+        opcoes_gen = {1:"Excelente", 2:"Muito Boa", 3:"Boa", 4:"Regular", 5:"Ruim"}
+        gen_hlth = st.select_slider("Como avalia sua saúde geral?", options=list(opcoes_gen.keys()), format_func=lambda x: opcoes_gen[x])
         
         st.write("---")
-        peso = st.number_input("Peso (kg)", value=75.0)
-        altura_cm = st.number_input("Altura (cm)", value=170)
+        st.markdown("**Cálculo de IMC**")
+        c1, c2 = st.columns(2)
+        peso = c1.number_input("Peso (kg)", min_value=30.0, value=75.0)
+        altura_cm = c2.number_input("Altura (cm)", min_value=100, value=170)
         imc_calculado = round(peso / ((altura_cm / 100) ** 2), 1)
         st.info(f"IMC: **{imc_calculado}**")
 
     with col2:
         st.subheader("Histórico Clínico")
-        # Checkboxes que agora terão o 'check' azul
         high_bp = st.checkbox("Possui Pressão Alta?")
         high_chol = st.checkbox("Possui Colesterol Alto?")
-        chol_check = st.checkbox("Exame de colesterol recente?")
-        smoker = st.checkbox("Já fumou 100+ cigarros?")
-        phys_act = st.checkbox("Atividade física (último mês)?")
-        healthcare = st.checkbox("Plano de saúde?", value=True)
-        diff_walk = st.checkbox("Dificuldade de locomoção?")
+        chol_check = st.checkbox("Exame de colesterol (últimos 5 anos)?")
+        stroke = st.checkbox("Já teve AVC?")
+        heart_dis = st.checkbox("Doença Cardíaca ou Infarto?")
+        smoker = st.checkbox("Já fumou 100+ cigarros na vida?")
+        phys_act = st.checkbox("Atividade física no último mês?")
+        fruits = st.checkbox("Consome Frutas regularmente?")
+        veggies = st.checkbox("Consome Vegetais regularmente?")
+        hvy_alcohol = st.checkbox("Consumo excessivo de álcool?")
+        healthcare = st.checkbox("Possui plano de saúde?", value=True)
+        no_doc_cost = st.checkbox("Deixou de ir ao médico por custo?")
+        diff_walk = st.checkbox("Dificuldade para caminhar/subir escadas?")
 
     submit = st.form_submit_button("GERAR ANÁLISE DE RISCO")
 
-# 5. Resultados e Relatório
+# 5. Processamento e Relatório
 if submit:
-    # Lógica de predição omitida para brevidade (mantém a mesma do anterior)
-    prob = 0.28 # Exemplo de retorno
+    input_data = pd.DataFrame([{
+        'HighBP': 1 if high_bp else 0, 'HighChol': 1 if high_chol else 0, 'CholCheck': 1 if chol_check else 0,
+        'BMI': imc_calculado, 'Smoker': 1 if smoker else 0, 'Stroke': 1 if stroke else 0,
+        'HeartDiseaseorAttack': 1 if heart_dis else 0, 'PhysActivity': 1 if phys_act else 0,
+        'Fruits': 1 if fruits else 0, 'Veggies': 1 if veggies else 0, 'HvyAlcoholConsump': 1 if hvy_alcohol else 0,
+        'AnyHealthcare': 1 if healthcare else 0, 'NoDocbcCost': 1 if no_doc_cost else 0,
+        'GenHlth': gen_hlth, 'DiffWalk': 1 if diff_walk else 0, 'Sex': sex, 'Age': age,
+        'Education': education, 'Income': income
+    }])
+
+    input_data = input_data[modelo.feature_names_in_]
+    prob = modelo.predict_proba(input_data)[0][1]
     
     st.divider()
+    
     if prob >= threshold_clinico:
-        st.error(f"### ⚠️ ALTO RISCO: {prob:.1%}")
+        st.error(f"### ⚠️ ALTO RISCO IDENTIFICADO: {prob:.1%}")
+        st.markdown(f"**Recomendação:** Procure um médico para exames confirmatórios (Glicemia/HbA1c).")
     else:
-        st.success(f"### ✅ BAIXO RISCO: {prob:.1%}")
+        st.success(f"### ✅ BAIXO RISCO IDENTIFICADO: {prob:.1%}")
 
-    # Relatório TXT para download
-    relatorio = f"Relatório Diabetes\nData: {data_atual}\nRisco: {prob:.1%}"
-    st.download_button("📥 Baixar Relatório Clínico", relatorio, file_name="relatorio.txt")
+    texto_relatorio = f"""
+    ==================================================
+    RELATÓRIO DE TRIAGEM PREVENTIVA - DIABETES (IA)
+    ==================================================
+    Data: {data_atual} (Brasília)
+    Risco Estimado: {prob:.1%}
+    Status: {"ALTO RISCO" if prob >= threshold_clinico else "BAIXO RISCO"}
+    --------------------------------------------------
+    SÍNTESE DOS INDICADORES:
+    - IMC: {imc_calculado}
+    - Pressão Alta: {"Sim" if high_bp else "Não"}
+    - Colesterol Alto: {"Sim" if high_chol else "Não"}
+    - Tabagismo (+100 cig): {"Sim" if smoker else "Não"}
+    --------------------------------------------------
+    SUGESTÃO DE CONDUTA (PROFISSIONAL DE SAÚDE):
+    Modelo com Sensibilidade de 94.8%. 
+    Sugere-se avaliar Glicemia de Jejum e Hemoglobina Glicada.
+    ==================================================
+    """
+    
+    st.download_button(
+        label="📥 Baixar Relatório Clínico (.txt)",
+        data=texto_relatorio,
+        file_name=f"relatorio_diabetes_{datetime.now(fuso_br).strftime('%Y%m%d_%H%M')}.txt",
+        mime="text/plain"
+    )
+    st.caption("Para salvar em PDF: Abra o relatório baixado e use a opção 'Imprimir -> Salvar como PDF'.")
 
-# 6. Transparência Técnica (SVG)
+# 6. Transparência Técnica
 st.divider()
 with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
-    try:
-        st.image("Confusion Matrix.svg", use_container_width=True)
-    except:
-        st.warning("SVG não encontrado.")
+    col_text, col_img = st.columns([1, 1.5])
+    with col_text:
+        st.write(f"**Recall:** 94.86% | **Threshold:** {threshold_clinico}")
+        st.markdown("Estratégia focada em minimizar Falsos Negativos.")
+    with col_img:
+        try:
+            st.image("Confusion Matrix.svg", use_container_width=True)
+        except:
+            st.warning("SVG da Matriz não encontrado no repositório.")
+
+st.caption("Aviso: Ferramenta de triagem estatística. Não substitui diagnóstico médico.
 
 
