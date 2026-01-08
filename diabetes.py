@@ -165,6 +165,7 @@ with st.expander("📝 Nota Metodológica: Por que essas perguntas?"):
     
     * **💰 Aspectos Socioeconômicos:** Renda e educação são "Determinantes Sociais de Saúde". Eles influenciam o acesso a alimentos frescos e a frequência de exames preventivos.
     * **🚬 Os 100 Cigarros:** Este é o marco clínico global para distinguir o uso social do **tabagismo estabelecido**, ponto onde o risco metabólico aumenta significativamente.
-    * **🏃 Atividade Física:** O critério de "últimos 30 dias" busca identificar o **comportamento sedentário**. Praticar uma vez não o torna um "marombeiro", mas não praticar nenhuma vez é um forte sinal de alerta.
+    * **🏃 Atividade Física:** O critério de "últimos 30 dias" busca identificar o **comportamento sedentário**. Não praticar nenhuma vez é um forte sinal de alerta.
     * **🏥 Custo e Plano de Saúde:** Mesmo quem possui plano de saúde pode enfrentar custos impeditivos (coparticipação, medicamentos), o que leva ao adiamento de cuidados críticos.
     """)
+
