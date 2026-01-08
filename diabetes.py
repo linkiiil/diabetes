@@ -127,4 +127,29 @@ if submit:
         st.error(f"RESULTADO: ALTO RISCO (Acima do Threshold de {threshold_clinico*100:.0f}%)")
         st.info("Estratégia focada em alta sensibilidade (Recall).")
     else:
+
         st.success(f"RESULTADO: BAIXO RISCO (Abaixo do Threshold de {threshold_clinico*100:.0f}%)")
+
+# --- SEÇÃO DE TRANSPARÊNCIA TÉCNICA ---
+st.divider()
+with st.expander("🔍 Ver Detalhes Técnicos e Matriz de Confusão"):
+    st.write("### Estratégia de Triagem")
+    st.markdown("""
+    Para este projeto, priorizamos a **Sensibilidade (Recall)**. Isso significa que o modelo é configurado 
+    para não deixar passar casos reais de diabetes, mesmo que isso aumente o número de exames confirmatórios.
+    """)
+    
+    col_text, col_img = st.columns([1, 2])
+    
+    with col_text:
+        st.write("**Métricas Finais (Threshold 0.25):**")
+        st.write("- **Recall:** 94.86%")
+        st.write("- **Casos Identificados:** 6.658")
+        st.write("- **Falsos Negativos:** 361")
+    
+    with col_img:
+        # Tenta carregar a imagem que você subiu no GitHub
+        try:
+            st.image("matriz_confusao.png", caption="Matriz de Confusão: Estratégia de Triagem")
+        except:
+            st.warning("Arquivo 'matriz_confusao.png' não encontrado no repositório.")
