@@ -1,9 +1,3 @@
-Para evitar qualquer conflito visual e garantir que o seu projeto de MBA tenha uma estética profissional e funcional, vamos usar a estratégia mais segura: definir a cor primária via :root (que altera checks, sliders e seletores de forma nativa) e estilizar os botões sem sobrepor o conteúdo.
-
-Aqui está o código completo, limpo e com o azul Navy aplicado corretamente:
-
-Python
-
 import streamlit as st
 import joblib
 import pandas as pd
@@ -197,8 +191,3 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
             st.warning("SVG da Matriz não encontrado.")
 
 st.caption("Aviso: Ferramenta de triagem estatística. Não substitui diagnóstico médico.")
-
-
-
-
-
