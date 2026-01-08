@@ -150,6 +150,7 @@ with st.expander("🔍 Ver Detalhes Técnicos e Matriz de Confusão"):
     with col_img:
         # Tenta carregar a imagem que você subiu no GitHub
         try:
-            st.image("matriz_confusao.png", caption="Matriz de Confusão: Estratégia de Triagem")
+            st.image("Confusion Matrix.png", caption="Matriz de Confusão: Estratégia de Triagem")
         except:
-            st.warning("Arquivo 'matriz_confusao.png' não encontrado no repositório.")
+            st.warning("Arquivo 'Confusion Matrix.png' não encontrado no repositório.")
+
