@@ -171,7 +171,7 @@ with st.form("form_clinico"):
 
         hvy_alcohol = st.checkbox("Consumo excessivo de álcool?")
 
-        healthcare = st.checkbox("Possui plano de saúde?", value=True)
+        healthcare = st.checkbox("Possui plano de saúde?")
 
         no_doc_cost = st.checkbox("Deixou de ir ao médico por custo?")
 
@@ -315,3 +315,4 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
 
 
 st.caption("Aviso: Ferramenta de triagem estatística. Não substitui diagnóstico médico.")
+
