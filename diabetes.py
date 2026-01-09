@@ -1,3 +1,9 @@
+O erro no seu código original era de identação e escopo. O dicionário map_sm_fgv e a variável income foram definidos fora do bloco with col1:, o que causaria um erro de layout no Streamlit (o seletor de renda não apareceria na coluna correta) e possivelmente um erro de execução.
+
+Aqui está o código corrigido e identado corretamente para que tudo funcione dentro do formulário:
+
+Python
+
 import streamlit as st
 import joblib
 import pandas as pd
@@ -53,6 +59,7 @@ with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     * **🚬 Estilo de Vida:** Tabagismo e sedentarismo são marcadores de risco metabólico.
     * **🏃 Atividade Física:** Identifica sedentarismo, um marcador crítico de risco metabólico.
     * **🏥 Custo:** Avalia barreiras financeiras que impedem o diagnóstico precoce.
+
     **Mudança Metodológica (Critério FGV):**
     **Estratificação Socioeconômica:**
     O modelo original utiliza faixas em dólares (USD). Para o contexto brasileiro, adaptamos a entrada para **Salários Mínimos (SM)** seguindo a classificação da **FGV**:
@@ -71,23 +78,21 @@ with st.form("form_clinico"):
                       7:"50-54", 8:"55-59", 9:"60-64", 10:"65-69", 11:"70-74", 12:"75-79", 13:"80+"}
         age = st.selectbox("Faixa etária", options=list(opcoes_age.keys()), format_func=lambda x: opcoes_age[x])
 
-        # --- MUDANÇA: CLASSES FGV ---
-        # Mapeamos 5 classes para a escala de 1 a 8 do modelo
+        # --- MUDANÇA: CLASSES FGV (Corrigido dentro do escopo da col1) ---
         map_sm_fgv = {
-    "Classe E (Até 1 SM)": 1,
-    "Classe D (1 a 2 SM)": 2,
-    "Classe D (2 a 4 SM)": 3,
-    "Classe C (4 a 7 SM)": 4,
-    "Classe C (7 a 15 SM)": 5,
-    "Classe B (15 a 20 SM)": 6,
-    "Classe A (20 a 30 SM)": 7,
-    "Classe A (Acima de 30 SM)": 8
-}
+            "Classe E (Até 1 SM)": 1,
+            "Classe D (1 a 2 SM)": 2,
+            "Classe D (2 a 4 SM)": 3,
+            "Classe C (4 a 7 SM)": 4,
+            "Classe C (7 a 15 SM)": 5,
+            "Classe B (15 a 20 SM)": 6,
+            "Classe A (20 a 30 SM)": 7,
+            "Classe A (Acima de 30 SM)": 8
+        }
 
-escolha_renda = st.selectbox("Classificação Econômica (FGV - Salários Mínimos)", 
-                            options=list(map_sm_fgv.keys()))
-
-income = map_sm_fgv[escolha_renda]
+        escolha_renda = st.selectbox("Classificação Econômica (FGV - Salários Mínimos)", 
+                                    options=list(map_sm_fgv.keys()))
+        income = map_sm_fgv[escolha_renda]
 
         opcoes_edu = {1:"Fundamental incompleto", 2:"Fundamental", 3:"Médio incompleto", 4:"Médio completo", 5:"Técnico/Superior inc.", 6:"Graduado"}
         education = st.selectbox("Escolaridade", options=list(opcoes_edu.keys()), format_func=lambda x: opcoes_edu[x])
@@ -176,7 +181,7 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
     try:
         col_b.image("Confusion Matrix.svg", use_container_width=True)
     except:
-        col_b.warning("SVG não encontrado.")
+        col_b.warning("SVG não encontrado no repositório.")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
 
