@@ -51,7 +51,9 @@ with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     **Justificativa das Variáveis:**
     * **💰 Socioeconômicos:** Renda e educação são determinantes sociais críticos. 
     * **🚬 Estilo de Vida:** Tabagismo e sedentarismo são marcadores de risco metabólico.
-    
+    * **🏃 Atividade Física:** Identifica sedentarismo, um marcador crítico de risco metabólico.
+    * **🏥 Custo:** Avalia barreiras financeiras que impedem o diagnóstico precoce.
+    """)
     **Mudança Metodológica (Critério FGV):**
     As opções de renda foram adaptadas para as **5 Classes Oficiais da FGV (A, B, C, D e E)**. 
     * **Motivação:** Como o modelo original (CDC) utiliza 8 faixas em dólares, a tradução direta pelo câmbio geraria distorções. 
@@ -171,4 +173,5 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
         col_b.warning("SVG não encontrado.")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
 
