@@ -16,6 +16,23 @@ Pré-processamento: Limpeza de dados duplicados, tratamento de desbalanceamento 
 
 Interpretabilidade: Implementação de valores SHAP (SHapley Additive exPlanations) para explicar a contribuição de cada variável no risco calculado.
 
+🇧🇷 Adaptação Socioeconômica (Critério FGV)
+Um diferencial técnico deste projeto é a transposição metodológica das variáveis de renda para o contexto brasileiro.
+
+O modelo original utiliza faixas em dólares (USD). Para evitar distorções cambiais e inflacionárias, aplicamos o conceito de Salários Mínimos (SM) baseado na classificação de classes econômicas da FGV:
+
+  Motivação: O Salário Mínimo atua como um proxy fiel para o poder de compra e acesso a determinantes de saúde (alimentação e medicina preventiva) no Brasil;
+
+  Mapeamento: As 5 classes oficiais da FGV (A a E) foram distribuídas nos 8 níveis ordinais do modelo original, garantindo que a "vulnerabilidade financeira" lida   pela IA corresponda à realidade nacional.
+
+Classe FGV	   Faixa (em SM)	  Código IA	   Nível de Acesso Estimado
+-----------------------------------------------------------------------------------
+Classe E	     Até 1 SM	        1	           Extrema vulnerabilidade social
+Classe D	     1 a 4 SM	        2 - 3	       Baixa renda com barreiras de acesso
+Classe C	     4 a 15 SM	      4 - 5	       Classe média (maior variação de risco)
+Classe B	     15 a 20 SM	      6	           Alta renda e acesso à saúde privada
+Classe A	     Acima de 20 SM	  7 - 8	       Topo da pirâmide e prevenção plena
+-----------------------------------------------------------------------------------
 📈 Resultados Técnicos
 
 O modelo foi estrategicamente calibrado para priorizar a captura de casos positivos (Diabetes), resultando em:
