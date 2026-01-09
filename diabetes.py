@@ -1,9 +1,3 @@
-O erro no seu código original era de identação e escopo. O dicionário map_sm_fgv e a variável income foram definidos fora do bloco with col1:, o que causaria um erro de layout no Streamlit (o seletor de renda não apareceria na coluna correta) e possivelmente um erro de execução.
-
-Aqui está o código corrigido e identado corretamente para que tudo funcione dentro do formulário:
-
-Python
-
 import streamlit as st
 import joblib
 import pandas as pd
@@ -184,6 +178,7 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
         col_b.warning("SVG não encontrado no repositório.")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
 
 
 
