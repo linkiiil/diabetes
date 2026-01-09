@@ -54,9 +54,10 @@ with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     * **🏃 Atividade Física:** Identifica sedentarismo, um marcador crítico de risco metabólico.
     * **🏥 Custo:** Avalia barreiras financeiras que impedem o diagnóstico precoce.
     **Mudança Metodológica (Critério FGV):**
-    As opções de renda foram adaptadas para as **5 Classes Oficiais da FGV (A, B, C, D e E)**. 
-    * **Motivação:** Como o modelo original (CDC) utiliza 8 faixas em dólares, a tradução direta pelo câmbio geraria distorções. 
-    * **Ação:** Utilizamos o padrão brasileiro de estratificação social atualizado pelo IPCA, mapeando as 5 classes para os níveis ordinais do modelo, garantindo que a 'vulnerabilidade financeira' lida pela IA corresponda à realidade do usuário no Brasil.
+    **Estratificação Socioeconômica:**
+    O modelo original utiliza faixas em dólares (USD). Para o contexto brasileiro, adaptamos a entrada para **Salários Mínimos (SM)** seguindo a classificação da **FGV**:
+    * **Critério:** As Classes A, B, C, D e E foram mapeadas nos 8 níveis ordinais do modelo.
+    * **Justificativa:** O Salário Mínimo atua como um *proxy* para o poder de compra e acesso a determinantes de saúde (alimentação, medicamentos e exames), mantendo a integridade estatística da predição original mesmo com variações inflacionárias.
     """)
 
 # 4. Formulário de Entrada
@@ -72,15 +73,21 @@ with st.form("form_clinico"):
 
         # --- MUDANÇA: CLASSES FGV ---
         # Mapeamos 5 classes para a escala de 1 a 8 do modelo
-        map_fgv = {
-            "Classe E (Até R$ 2.500)": 1,
-            "Classe D (R$ 2.501 a R$ 4.000)": 2,
-            "Classe C (R$ 4.001 a R$ 17.000)": 4, # Representante central da Classe C
-            "Classe B (R$ 17.001 a R$ 22.500)": 6,
-            "Classe A (Acima de R$ 22.500)": 8
-        }
-        escolha_renda = st.selectbox("Renda Familiar Mensal (Padrão FGV)", options=list(map_fgv.keys()))
-        income = map_fgv[escolha_renda]
+        map_sm_fgv = {
+    "Classe E (Até 1 SM)": 1,
+    "Classe D (1 a 2 SM)": 2,
+    "Classe D (2 a 4 SM)": 3,
+    "Classe C (4 a 7 SM)": 4,
+    "Classe C (7 a 15 SM)": 5,
+    "Classe B (15 a 20 SM)": 6,
+    "Classe A (20 a 30 SM)": 7,
+    "Classe A (Acima de 30 SM)": 8
+}
+
+escolha_renda = st.selectbox("Classificação Econômica (FGV - Salários Mínimos)", 
+                            options=list(map_sm_fgv.keys()))
+
+income = map_sm_fgv[escolha_renda]
 
         opcoes_edu = {1:"Fundamental incompleto", 2:"Fundamental", 3:"Médio incompleto", 4:"Médio completo", 5:"Técnico/Superior inc.", 6:"Graduado"}
         education = st.selectbox("Escolaridade", options=list(opcoes_edu.keys()), format_func=lambda x: opcoes_edu[x])
@@ -172,6 +179,7 @@ with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
         col_b.warning("SVG não encontrado.")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
 
 
 
