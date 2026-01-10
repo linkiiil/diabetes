@@ -37,17 +37,17 @@ O modelo original utiliza faixas em dólares (USD). Para evitar distorções cam
 
 O modelo foi estrategicamente calibrado para priorizar a captura de casos positivos (Diabetes), resultando em:
 
-Recall (Sensibilidade): 94,86% (identificando 6.658 casos reais no conjunto de teste).
+Recall (Sensibilidade): 94.56% (identificando 6637 casos reais no conjunto de teste).
 
-ROC-AUC: 0,8165.
+ROC-AUC: 0.8163.
 
-Threshold Clínico: 0,25 — ponto de corte otimizado para maximizar a triagem preventiva.
+Threshold Clínico: 0.25 — ponto de corte otimizado para maximizar a triagem preventiva.
 
 📊 Matriz de Confusão e Estratégia Clínica
 
 Priorizamos a Sensibilidade para assegurar que o paciente receba orientação precoce.
 
-A imagem detalha a performance utilizando o Threshold de 0,25. Embora gere 22.420 falsos positivos, a estratégia garante que apenas 361 casos reais (falsos negativos) não sejam detectados, priorizando a segurança clínica.
+A imagem detalha a performance utilizando o Threshold de 0.25. Embora gere 22166 falsos positivos, a estratégia garante que apenas 382 casos reais (falsos negativos) não sejam detectados, priorizando a segurança clínica.
 
 📂 Estrutura do Repositório
 
