@@ -171,13 +171,14 @@ if submit:
 st.divider()
 with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
     col_a, col_b = st.columns([1, 1.5])
-    col_a.write(f"Recall: 94.86% | Threshold: {threshold_clinico}")
+    col_a.write(f"Recall: 94.56% | Threshold: {threshold_clinico}")
     try:
         col_b.image("Confusion Matrix.svg", use_container_width=True)
     except:
         col_b.warning("SVG não encontrado no repositório.")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
 
 
 
