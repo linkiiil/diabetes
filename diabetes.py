@@ -192,7 +192,7 @@ if submit:
 # ---------------------------
 # Util: exibir SVG com melhor qualidade quando possível
 # ---------------------------
-def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] = None, max_height: int = 420):
+def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] = None, max_height: int = 640):
     """
     Tenta converter SVG para PNG em alta resolução usando cairosvg (se disponível).
     Se cairosvg não estiver instalado, embute o SVG diretamente via components.html.
@@ -224,40 +224,52 @@ def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] =
             {svg_text}
         </div>
         """
-        st.components.v1.html(html, height=max_height + 20, scrolling=True)
+        st.components.v1.html(html, height=max_height + 40, scrolling=True)
         if caption:
             st.caption(caption)
     except Exception:
         st.warning(f"Não foi possível renderizar o arquivo: {os.path.basename(path)}")
 
 # ---------------------------
-# Auditoria Técnica: gráficos e métricas em abas separadas
+# Auditoria Técnica: uma aba por gráfico e uma aba para métricas
 # ---------------------------
 st.divider()
-tab_graphs, tab_metrics = st.tabs(["📊 Gráficos de Avaliação", "📈 Métricas"])
+tab_pr, tab_sep, tab_brier, tab_conf, tab_metrics = st.tabs([
+    "Curva Precisão-Recall",
+    "Separação de Classes",
+    "Brier Score",
+    "Matriz de Confusão",
+    "Métricas"
+])
 
-with tab_graphs:
-    st.write("Artefatos de avaliação do modelo. Se algum SVG não estiver disponível, uma mensagem será exibida.")
-    # Organiza os quatro gráficos em duas linhas com espaçamento garantido
-    row1_col1, row1_col2 = st.columns(2)
-    row2_col1, row2_col2 = st.columns(2)
+with tab_pr:
+    st.header("Curva Precisão-Recall")
+    st.write("Curva Precision-Recall do modelo (validação).")
+    display_svg_high_quality("Curva Precisão-Recall.svg", scale=3, caption="Curva Precisão-Recall", max_height=720)
 
-    with row1_col1:
-        display_svg_high_quality("Curva Precisão-Recall.svg", scale=3, caption="Curva Precisão-Recall", max_height=480)
-    with row1_col2:
-        display_svg_high_quality("Separação de Classes.svg", scale=3, caption="Separação de Classes", max_height=480)
-    with row2_col1:
-        display_svg_high_quality("Brier Score.svg", scale=3, caption="Brier Score (gráfico)", max_height=480)
-    with row2_col2:
-        if os.path.exists("Matriz de Confusão.svg"):
-            display_svg_high_quality("Matriz de Confusão.svg", scale=3, caption="Matriz de Confusão", max_height=480)
-        elif os.path.exists("Confusion Matrix.svg"):
-            display_svg_high_quality("Confusion Matrix.svg", scale=3, caption="Matriz de Confusão", max_height=480)
-        else:
-            st.warning("Arquivo 'Matriz de Confusão.svg' não encontrado no repositório.")
+with tab_sep:
+    st.header("Separação de Classes")
+    st.write("Visualização da separação entre classes no espaço de features/representação.")
+    display_svg_high_quality("Separação de Classes.svg", scale=3, caption="Separação de Classes", max_height=720)
+
+with tab_brier:
+    st.header("Brier Score")
+    st.write("Gráfico de Brier Score (calibração / erro quadrático das probabilidades).")
+    display_svg_high_quality("Brier Score.svg", scale=3, caption="Brier Score (gráfico)", max_height=720)
+
+with tab_conf:
+    st.header("Matriz de Confusão")
+    st.write("Matriz de confusão do modelo (validação).")
+    if os.path.exists("Matriz de Confusão.svg"):
+        display_svg_high_quality("Matriz de Confusão.svg", scale=3, caption="Matriz de Confusão", max_height=720)
+    elif os.path.exists("Confusion Matrix.svg"):
+        display_svg_high_quality("Confusion Matrix.svg", scale=3, caption="Matriz de Confusão", max_height=720)
+    else:
+        st.warning("Arquivo 'Matriz de Confusão.svg' não encontrado no repositório.")
 
 with tab_metrics:
-    st.write("Métricas de validação do modelo (lidas do artefato). Se estiverem ausentes, exibimos N/A.")
+    st.header("Métricas de Validação")
+    st.write("Recall e Average Precision (PR AUC) lidos do artefato. Se estiverem ausentes, exibimos N/A.")
     recall_val = None
     pr_auc_val = None
     if isinstance(data, dict):
