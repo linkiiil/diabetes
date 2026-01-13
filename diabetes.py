@@ -8,39 +8,65 @@ import numpy as np
 from datetime import datetime
 from typing import Optional
 
-# Tenta importar bibliotecas para conversão de SVG para PNG
-try:
-    import cairosvg
-    from PIL import Image
-    CAIROSVG_AVAILABLE = True
-except Exception:
-    CAIROSVG_AVAILABLE = False
-
 # ---------------------------
 # Configuração da Página
 # ---------------------------
 st.set_page_config(page_title="Triagem Inteligente de Diabetes", layout="wide")
 
 # ---------------------------
-# Carregamento do modelo
+# Funções de Suporte
 # ---------------------------
 @st.cache_resource
 def carregar_modelo(path="modelo_diabetes_vtl.pkl"):
+    if not os.path.exists(path):
+        return None
     try:
         return joblib.load(path)
-    except Exception:
+    except Exception as e:
+        st.error(f"Erro ao carregar o arquivo .pkl: {e}")
         return None
 
-data = carregar_modelo()
-if data is None:
-    st.error("Erro crítico: Arquivo 'modelo_diabetes_vtl.pkl' não encontrado ou inválido.")
-    st.stop()
-
-modelo = data.get('pipeline') or data.get('model') or data.get('estimator')
-threshold_clinico = data.get('threshold', 0.25)
+def display_svg(path: str, caption: str):
+    """Lê o arquivo SVG e renderiza como HTML puro para evitar bloqueios do navegador."""
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                svg_content = f.read()
+            
+            # Garante que o SVG seja responsivo e visível
+            html = f"""
+            <div style="background-color: white; padding: 15px; border-radius: 8px; border: 1px solid #eee; display: flex; justify-content: center;">
+                <style>svg {{ width: 100%; height: auto; max-width: 800px; }}</style>
+                {svg_content}
+            </div>
+            """
+            st.write(f"**{caption}**")
+            st.components.v1.html(html, height=550)
+        except Exception as e:
+            st.error(f"Erro ao processar {path}: {e}")
+    else:
+        st.warning(f"Arquivo não encontrado no diretório: {path}")
 
 # ---------------------------
-# Timezone e cabeçalho
+# Carregamento do modelo
+# ---------------------------
+data = carregar_modelo()
+
+if data is None:
+    st.error("❌ ERRO: Arquivo 'modelo_diabetes_vtl.pkl' não encontrado.")
+    st.info(f"Arquivos detectados na pasta: {os.listdir('.')}")
+    st.stop()
+
+# MAPEAMENTO DE CHAVES (Conforme o seu export_data)
+modelo = data.get('pipeline')
+threshold_clinico = data.get('threshold', 0.25)
+# Aqui ajustamos para os nomes que você definiu no dicionário:
+recall_val = data.get('recall_pos') 
+pr_auc_val = data.get('avg_precision')
+roc_auc_val = data.get('roc_auc')
+
+# ---------------------------
+# Timezone e Cabeçalho
 # ---------------------------
 fuso_br = pytz.timezone('America/Sao_Paulo')
 data_atual = datetime.now(fuso_br).strftime('%d/%m/%Y %H:%M')
@@ -120,7 +146,7 @@ with st.form("form_clinico"):
         submit = st.form_submit_button("GERAR ANÁLISE DE RISCO")
 
 # ---------------------------
-# Previsão e relatório
+# Previsão
 # ---------------------------
 if submit:
     input_data = pd.DataFrame([{
@@ -134,102 +160,9 @@ if submit:
 
     try:
         input_data = input_data[modelo.feature_names_in_]
-    except Exception:
+    except:
         pass
 
     prob = modelo.predict_proba(input_data)[0][1]
     st.divider()
-    status_risco = "ALTO RISCO" if prob >= threshold_clinico else "BAIXO RISCO"
-    
-    if prob >= threshold_clinico:
-        st.error(f"### ⚠️ {status_risco} IDENTIFICADO: {prob:.1%}")
-        st.markdown("**Conduta sugerida:** Encaminhamento para Glicemia de Jejum e HbA1c.")
-    else:
-        st.success(f"### ✅ {status_risco} IDENTIFICADO: {prob:.1%}")
-
-    texto_relatorio = f"""
-==================================================
-RELATÓRIO DE TRIAGEM PREVENTIVA - DIABETES (IA)
-==================================================
-Data/Hora: {data_atual}
-Risco: {prob:.1%} ({status_risco})
---------------------------------------------------
-SÍNTESE DOS DADOS:
-- IMC: {imc_calculado}
-- Renda: {escolha_renda}
-- Saúde Geral: {opcoes_gen[gen_hlth]}
---------------------------------------------------
-NOTA: Baseado em modelo preditivo CDC/BRFSS.
-==================================================
-"""
-    st.download_button(label="📥 Baixar Relatório Clínico", data=texto_relatorio,
-                       file_name=f"triagem_{datetime.now().strftime('%d%m%Y')}.txt")
-
-# ---------------------------
-# Util: exibir SVG com correção de visibilidade
-# ---------------------------
-def display_svg_high_quality(path: str, scale: int = 3, caption: Optional[str] = None, max_height: int = 720):
-    if not os.path.exists(path):
-        st.warning(f"Arquivo não encontrado: {os.path.basename(path)}")
-        return
-
-    if CAIROSVG_AVAILABLE:
-        try:
-            with open(path, "rb") as f:
-                svg_bytes = f.read()
-            png_bytes = cairosvg.svg2png(bytestring=svg_bytes, scale=scale)
-            st.image(png_bytes, use_column_width=True, caption=caption)
-            return
-        except Exception:
-            pass
-
-    # Fallback: Injeção direta de SVG no HTML com largura 100% para garantir visibilidade
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            svg_text = f.read()
-        # Adiciona estilo para garantir que o SVG ocupe o espaço e seja visível
-        html = f"""
-        <div style="width:100%; display:flex; justify-content:center; background-color:white; padding:10px; border-radius:5px;">
-            <style>svg {{ width: 100%; height: auto; }}</style>
-            {svg_text}
-        </div>
-        """
-        st.components.v1.html(html, height=max_height, scrolling=True)
-        if caption:
-            st.caption(caption)
-    except Exception:
-        st.warning(f"Não foi possível ler o arquivo: {os.path.basename(path)}")
-
-# ---------------------------
-# Auditoria Técnica
-# ---------------------------
-st.divider()
-tab_pr, tab_sep, tab_brier, tab_conf, tab_metrics = st.tabs([
-    "Curva Precisão-Recall", "Separação de Classes", "Brier Score", "Matriz de Confusão", "Métricas"
-])
-
-with tab_pr:
-    st.header("Curva Precisão-Recall")
-    display_svg_high_quality("Curvas Recall-Precision.svg", caption="Análise Precision-Recall")
-
-with tab_sep:
-    st.header("Separação de Classes")
-    display_svg_high_quality("Separação de Classes.svg", caption="Separação de Classes")
-
-with tab_brier:
-    st.header("Brier Score")
-    display_svg_high_quality("Brier Score.svg", caption="Gráfico de Brier Score")
-
-with tab_conf:
-    st.header("Matriz de Confusão")
-    display_svg_high_quality("Matriz de Confusão.svg", caption="Matriz de Confusão")
-
-with tab_metrics:
-    st.header("Métricas de Validação")
-    recall_val = data.get('recall', None)
-    pr_auc_val = data.get('pr_auc', None)
-    col_a, col_b = st.columns(2)
-    col_a.metric("Recall (validação)", f"{recall_val:.2%}" if recall_val else "N/A")
-    col_b.metric("Average Precision (PR AUC)", f"{pr_auc_val:.3f}" if pr_auc_val else "N/A")
-
-st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+    status_ris
