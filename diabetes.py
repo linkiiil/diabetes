@@ -165,4 +165,42 @@ if submit:
 
     prob = modelo.predict_proba(input_data)[0][1]
     st.divider()
-    status_ris
+    status_risco = "ALTO RISCO" if prob >= threshold_clinico else "BAIXO RISCO"
+    
+    if prob >= threshold_clinico:
+        st.error(f"### ⚠️ {status_risco} IDENTIFICADO: {prob:.1%}")
+    else:
+        st.success(f"### ✅ {status_risco} IDENTIFICADO: {prob:.1%}")
+
+# ---------------------------
+# Auditoria Técnica (Abas)
+# ---------------------------
+st.divider()
+st.subheader("📊 Auditoria Técnica do Modelo")
+
+tab_pr, tab_sep, tab_brier, tab_conf, tab_metrics = st.tabs([
+    "Curva Precisão-Recall", "Separação de Classes", "Brier Score", "Matriz de Confusão", "Métricas"
+])
+
+with tab_pr:
+    display_svg("Curvas Recall-Precision.svg", "Gráfico Precision-Recall")
+
+with tab_sep:
+    display_svg("Separação de Classes.svg", "Distribuição das Predições")
+
+with tab_brier:
+    display_svg("Brier Score.svg", "Análise de Calibração (Brier Score)")
+
+with tab_conf:
+    display_svg("Matriz de Confusão.svg", "Matriz de Confusão (Validação)")
+
+with tab_metrics:
+    st.write("Métricas consolidadas do conjunto de teste:")
+    c1, c2, c3 = st.columns(3)
+    
+    # Exibindo os valores com tratamento para caso sejam nulos
+    c1.metric("Recall (Classe 1)", f"{recall_val:.2%}" if recall_val else "N/A")
+    c2.metric("Avg Precision (AP)", f"{pr_auc_val:.3f}" if pr_auc_val else "N/A")
+    c3.metric("ROC AUC", f"{roc_auc_val:.3f}" if roc_auc_val else "N/A")
+
+st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
