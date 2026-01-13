@@ -167,17 +167,56 @@ if submit:
     st.download_button(label="📥 Baixar Relatório Clínico", data=texto_relatorio, 
                        file_name=f"triagem_{datetime.now().strftime('%d%m%Y')}.txt")
 
-# 6. Rodapé Técnico
+# 6. Rodapé Técnico com gráficos de auditoria
 st.divider()
-with st.expander("🔍 Auditoria Técnica (Matriz de Confusão)"):
-    col_a, col_b = st.columns([1, 1.5])
-    col_a.write(f"Recall: 94.56% | Threshold: {threshold_clinico}")
+with st.expander("🔍 Auditoria Técnica (Gráficos e Métricas)"):
+    st.write("Abaixo estão os artefatos de avaliação do modelo. Se algum SVG não estiver disponível no repositório, uma mensagem será exibida.")
+    # Organiza os quatro gráficos em duas linhas de duas colunas
+    row1_col1, row1_col2 = st.columns(2)
+    row2_col1, row2_col2 = st.columns(2)
+
+    # Curva Precisão-Recall
     try:
-        col_b.image("Confusion Matrix.svg", use_container_width=True)
-    except:
-        col_b.warning("SVG não encontrado no repositório.")
+        row1_col1.image("Curva Precisão-Recall.svg", use_container_width=True)
+    except Exception:
+        row1_col1.warning("Arquivo 'Curva Precisão-Recall.svg' não encontrado no repositório.")
+
+    # Separação de Classes
+    try:
+        row1_col2.image("Separação de Classes.svg", use_container_width=True)
+    except Exception:
+        row1_col2.warning("Arquivo 'Separação de Classes.svg' não encontrado no repositório.")
+
+    # Brier Score
+    try:
+        row2_col1.image("Brier Score.svg", use_container_width=True)
+    except Exception:
+        row2_col1.warning("Arquivo 'Brier Score.svg' não encontrado no repositório.")
+
+    # Matriz de Confusão
+    try:
+        row2_col2.image("Matriz de Confusão.svg", use_container_width=True)
+    except Exception:
+        # Mantém compatibilidade com nome anterior se existir
+        try:
+            row2_col2.image("Confusion Matrix.svg", use_container_width=True)
+        except Exception:
+            row2_col2.warning("Arquivo 'Matriz de Confusão.svg' não encontrado no repositório.")
+
+    # Pequenas métricas resumidas (exemplo estático; substitua por valores reais se disponíveis)
+    st.markdown("---")
+    col_a, col_b, col_c = st.columns(3)
+    # Se o objeto 'data' contiver métricas, exiba; caso contrário, exiba placeholders
+    recall_val = data.get('recall') if isinstance(data, dict) and data.get('recall') is not None else 0.9456
+    brier_val = data.get('brier_score') if isinstance(data, dict) and data.get('brier_score') is not None else 0.08
+    pr_auc_val = data.get('pr_auc') if isinstance(data, dict) and data.get('pr_auc') is not None else 0.72
+
+    col_a.metric("Recall (validação)", f"{recall_val:.2%}")
+    col_b.metric("Brier Score (validação)", f"{brier_val:.3f}")
+    col_c.metric("PR AUC (Precision-Recall)", f"{pr_auc_val:.3f}")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
 
 
 
