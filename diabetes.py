@@ -80,7 +80,7 @@ st.markdown(
 with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     st.markdown("""
     Justificativa das Variáveis:
-    * 💰 **Socioeconômicos:** Renda e educação são determinantes sociais críticos.
+    * 💰 **Socioeconômicas:** Renda e educação são determinantes sociais críticos.
     * 🚬 **Estilo de Vida:** Tabagismo e sedentarismo são marcadores de risco metabólico.
     * 🏃 **Atividade Física:** Identifica sedentarismo, um marcador crítico de risco metabólico.
     * 🏥 **Custo:** Avalia barreiras financeiras que impedem o diagnóstico precoce.
@@ -200,3 +200,4 @@ with tab_metrics:
     c3.metric("ROC AUC", f"{roc_auc_val:.3f}" if roc_auc_val else "N/A")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
