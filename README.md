@@ -1,5 +1,4 @@
 # Diabetes
-
 🏥 Sistema de Triagem Inteligente: Diabetes Risk Predictor
 
 Este projeto apresenta uma solução de Machine Learning para a identificação precoce de risco de diabetes, utilizando a base de dados histórica do CDC (Centers for Disease Control and Prevention). O objetivo central é fornecer uma ferramenta de suporte à decisão clínica com foco em Alta Sensibilidade (Recall) para viabilizar triagens populacionais preventivas.
@@ -9,21 +8,21 @@ Este projeto apresenta uma solução de Machine Learning para a identificação 
 O diabetes é uma patologia crônica de elevado impacto socioeconômico. Este modelo foi desenvolvido para converter indicadores de saúde, comportamento e dados socioeconômicos em probabilidades de risco, permitindo intervenções médicas antes do agravamento do quadro clínico.
 
 🛠️ Metodologia e Tecnologias
-
 Algoritmo Principal: LightGBM (LGBM) otimizado através de busca hiperparamétrica (RandomizedSearchCV).
 
 Pré-processamento: Limpeza de dados duplicados, tratamento de desbalanceamento de classe e mitigação de Data Leakage através da exclusão das variáveis MentHlth e PhysHlth.
 
 Interpretabilidade: Implementação de valores SHAP (SHapley Additive exPlanations) para explicar a contribuição de cada variável no risco calculado.
 
+Calibração: O modelo não utiliza o threshold padrão de 0.5, mas um Threshold Clínico de 0.25 otimizado para maximizar a captura de pacientes em risco.
+
 🇧🇷 Adaptação Socioeconômica (Critério FGV)
-Um diferencial técnico deste projeto é a transposição metodológica das variáveis de renda para o contexto brasileiro.
 
-O modelo original utiliza faixas em dólares (USD). Para evitar distorções cambiais e inflacionárias, aplicamos o conceito de Salários Mínimos (SM) baseado na classificação de classes econômicas da FGV:
+Um diferencial técnico deste projeto é a transposição metodológica das variáveis de renda para o contexto brasileiro. O modelo original utiliza faixas em dólares (USD). Para evitar distorções cambiais e inflacionárias, aplicamos o conceito de Salários Mínimos (SM) baseado na classificação de classes econômicas da FGV:
 
-  Motivação: O Salário Mínimo atua como um proxy fiel para o poder de compra e acesso a determinantes de saúde (alimentação e medicina preventiva) no Brasil;
+Motivação: O Salário Mínimo atua como um proxy fiel para o poder de compra e acesso a determinantes de saúde (alimentação e medicina preventiva) no Brasil;
 
-  Mapeamento: As 5 classes oficiais da FGV (A a E) foram distribuídas nos 8 níveis ordinais do modelo original, garantindo que a "vulnerabilidade financeira" lida   pela IA corresponda à realidade nacional.
+Mapeamento: As 5 classes oficiais da FGV (A a E) foram distribuídas nos 8 níveis ordinais do modelo original, garantindo que a "vulnerabilidade financeira" lida pela IA corresponda à realidade nacional.
 
 | Classe FGV | Faixa de Renda (SM) | Código IA | Nível de Acesso Estimado |
 | :--- | :--- | :---: | :--- |
@@ -33,7 +32,7 @@ O modelo original utiliza faixas em dólares (USD). Para evitar distorções cam
 | **Classe B** | 15 a 20 SM | 6 | Alta renda e acesso à saúde privada |
 | **Classe A** | Acima de 20 SM | 7 - 8 | Topo da pirâmide e prevenção plena |
 
-📈 Resultados Técnicos
+📈 Resultados Técnicos e Estratégia Clínica
 
 O modelo foi estrategicamente calibrado para priorizar a captura de casos positivos (Diabetes), resultando em:
 
@@ -41,33 +40,35 @@ Recall (Sensibilidade): 94.89% (identificando 6660 casos reais no conjunto de te
 
 ROC-AUC: 0.8166.
 
-Threshold Clínico: 0.25 — ponto de corte otimizado para maximizar a triagem preventiva.
+Estratégia: Priorizamos a Sensibilidade para assegurar que o paciente receba orientação precoce. Embora gere mais falsos positivos, a estratégia garante que apenas 359 casos reais (falsos negativos) não sejam detectados, priorizando a segurança clínica.
 
-📊 Matriz de Confusão e Estratégia Clínica
+🔍 Auditoria Técnica e Transparência (XAI)
 
-Priorizamos a Sensibilidade para assegurar que o paciente receba orientação precoce.
+A aplicação conta com uma seção dedicada à Auditoria Técnica, acessível via abas no dashboard. Esta seção permite que gestores de saúde e cientistas de dados validem a confiabilidade de cada predição através de:
 
-A imagem detalha a performance utilizando o Threshold de 0.25. Embora gere 22417 falsos positivos, a estratégia garante que apenas 359 casos reais (falsos negativos) não sejam detectados, priorizando a segurança clínica.
+Brier Score: Validação da calibração (o quão perto a probabilidade prevista está da realidade).
+
+Separação de Classes: Visualização da densidade de probabilidade para ambas as classes.
+
+Curva Recall-Precision: Demonstração do trade-off escolhido para o threshold de 0.25.
+
+⚠️ Nota sobre o IMC (Body Mass Index)
+
+O modelo utiliza o IMC derivado de dados autorreferidos. Durante a análise exploratória (EDA), observou-se que 92,1% dos dados concentram-se entre o IMC 20 e 40.
+
+Valores extremos (ex: IMC > 60) são tratados como ruído estatístico comum em surveys (informações irreais de peso/altura), sendo mantidos para preservar a distribuição original, mas exigindo cautela na interpretação individual.
 
 📂 Estrutura do Repositório
 
 diabetes.py: Aplicação interativa desenvolvida em Streamlit.
 
-modelo_diabetes_vtl.pkl: modelo LGBM, incluindo transformadores e parâmetros de calibração.
+modelo_diabetes_vtl.pkl: Pipeline LGBM, incluindo transformadores e parâmetros de calibração.
 
-requirements.txt: Lista de dependências técnicas (Pandas, Scikit-Learn, XGBoost, LightGBM).
+requirements.txt: Lista de dependências (Pandas, Scikit-Learn, LightGBM).
 
-Projeto - Diabetes.pdf: Relatório técnico completo contendo EDA, SHAP e validação de hipóteses.
+Projeto - Diabetes.pdf: Relatório técnico contendo EDA, SHAP e validação de hipóteses.
 
-Curvas Recall-Precision.svg: Mostra o quão bem o modelo identifica os casos positivos (Recall) sem disparar muitos alarmes falsos (Precision).
-
-Brier Score.svg: Mede a precisão das probabilidades previstas.
-
-Separação de Classes.svg: Mostra o "poder de discriminação" do modelo.
-
-Matriz de Confusão.svg: "Pilar central" para entender onde o modelo está errando, especialmente para diferenciar entre um erro "aceitável" e um erro "perigoso" no contexto médico.
-
-README.md: Guia de apresentação e documentação do projeto.
+Gráficos Vetoriais (.svg): Curvas Recall-Precision, Brier Score, Separação de Classes e Matriz de Confusão.
 
 💻 Como Executar Localmente
 
@@ -76,13 +77,11 @@ Clone o repositório:
 Bash
 
 git clone https://github.com/linkiiil/diabetes.git
-
 Instale as dependências:
 
 Bash
 
 pip install -r requirements.txt
-
 Execute a aplicação:
 
 Bash
