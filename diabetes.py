@@ -149,4 +149,5 @@ if submit:
         'HeartDiseaseorAttack': 1 if heart_dis else 0, 'PhysActivity': 1 if phys_act else 0,
         'Fruits': 1 if fruits else 0, 'Veggies': 1 if veggies else 0, 'HvyAlcoholConsump': 1 if hvy_alcohol else 0,
         'AnyHealthcare': 1 if healthcare else 0, 'NoDocbcCost': 1 if no_doc_cost else 0, 'GenHlth': gen_hlth,
-        'DiffWalk': 1 if diff_walk else 0, 'Sex': sex, 'Age': age, 'Education
+        'DiffWalk': 1 if diff_walk else 0, 'Sex': sex, 'Age': age, 'Education'
+
