@@ -7,7 +7,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from typing import Optional
 
 # ---------------------------
 # Configuração da Página
@@ -33,7 +32,6 @@ def display_svg(path: str, caption: str):
         try:
             with open(path, "rb") as f:
                 svg_data = f.read()
-            
             b64 = base64.b64encode(svg_data).decode("utf-8")
             html = f"""
             <div style="display: flex; justify-content: center; background-color: white; padding: 20px; border-radius: 10px; border: 1px solid #eee;">
@@ -45,23 +43,22 @@ def display_svg(path: str, caption: str):
         except Exception as e:
             st.error(f"Erro ao processar {path}: {e}")
     else:
-        st.warning(f"⚠️ Arquivo não encontrado no diretório: {path}")
+        st.warning(f"⚠️ Arquivo não encontrado: {path}")
 
 # ---------------------------
 # Carregamento do modelo e Dados
 # ---------------------------
 data = carregar_modelo()
-
 if data is None:
     st.error("❌ ERRO CRÍTICO: 'modelo_diabetes_vtl.pkl' não encontrado.")
     st.stop()
 
-# Mapeamento conforme seu export_data
 modelo = data.get('pipeline')
 threshold_clinico = data.get('threshold', 0.25)
-recall_val = data.get('recall_pos') 
+recall_val = data.get('recall_pos')
 pr_auc_val = data.get('avg_precision')
 roc_auc_val = data.get('roc_auc')
+f1_val = data.get('f1_pos')
 
 # ---------------------------
 # Cabeçalho
@@ -73,7 +70,7 @@ st.title("🏥 Sistema de Apoio à Decisão Clínica: Diabetes")
 st.markdown(f"Analista Responsável: Portal de Triagem Preventiva | Data: {data_atual} (Horário de Brasília)")
 
 st.markdown(
-    "Origem dos dados: Este projeto utiliza o dataset Diabetes Health Indicators do Centers for Disease Control and Prevention (CDC), "
+    "Origem dos dados: Este projeto utiliza o dataset *Diabetes Health Indicators* do Centers for Disease Control and Prevention (CDC), "
     "uma base de dados robusta com mais de 250 mil registros que traduzem o perfil de saúde, estilo de vida e indicadores socioeconômicos da população."
 )
 
@@ -94,13 +91,13 @@ with st.expander("📝 Nota Metodológica e Motivação Técnica"):
 # ---------------------------
 with st.form("form_clinico"):
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.subheader("Perfil e Estilo de Vida")
         opcoes_age = {1:"18-24", 2:"25-29", 3:"30-34", 4:"35-39", 5:"40-44", 6:"45-49",
                       7:"50-54", 8:"55-59", 9:"60-64", 10:"65-69", 11:"70-74", 12:"75-79", 13:"80+"}
         age = st.selectbox("Faixa etária", options=list(opcoes_age.keys()), format_func=lambda x: opcoes_age[x])
-        
+
         map_sm_fgv = {
             "Classe E (Até 1 SM)": 1, "Classe D (1 a 2 SM)": 2, "Classe D (2 a 4 SM)": 3,
             "Classe C (4 a 7 SM)": 4, "Classe C (7 a 15 SM)": 5, "Classe B (15 a 20 SM)": 6,
@@ -108,15 +105,15 @@ with st.form("form_clinico"):
         }
         escolha_renda = st.selectbox("Classificação Econômica (FGV - Salários Mínimos)", options=list(map_sm_fgv.keys()))
         income = map_sm_fgv[escolha_renda]
-        
+
         opcoes_edu = {1:"Fundamental incompleto", 2:"Fundamental", 3:"Médio incompleto", 4:"Médio completo", 5:"Técnico/Superior inc.", 6:"Graduado"}
         education = st.selectbox("Escolaridade", options=list(opcoes_edu.keys()), format_func=lambda x: opcoes_edu[x])
-        
+
         sex = st.radio("Sexo Biológico", options=[0, 1], format_func=lambda x: "Feminino" if x==0 else "Masculino")
-        
+
         opcoes_gen = {1:"Excelente", 2:"Muito Boa", 3:"Boa", 4:"Regular", 5:"Ruim"}
         gen_hlth = st.select_slider("Como avalia sua saúde geral?", options=list(opcoes_gen.keys()), format_func=lambda x: opcoes_gen[x])
-        
+
         st.write("---")
         st.markdown("**Cálculo de IMC**")
         c1_imc, c2_imc = st.columns(2)
@@ -125,7 +122,7 @@ with st.form("form_clinico"):
         imc_calculado = round(peso / ((altura_cm / 100) ** 2), 1)
         st.info(f"IMC Calculado: **{imc_calculado}**")
 
-     # 🔎 Nota adicional sobre IMC
+        # 🔎 Nota adicional sobre IMC
         st.markdown("""
         **Nota sobre IMC (Body Mass Index):**  
         Neste aplicativo o IMC é derivado de dados autorreferidos do CDC (BRFSS).  
@@ -149,7 +146,6 @@ with st.form("form_clinico"):
         healthcare = st.checkbox("Possui plano de saúde?")
         no_doc_cost = st.checkbox("Deixou de ir ao médico por custo?")
         diff_walk = st.checkbox("Dificuldade para caminhar/subir escadas?")
-        
         submit = st.form_submit_button("GERAR ANÁLISE DE RISCO")
 
 # ---------------------------
@@ -157,13 +153,26 @@ with st.form("form_clinico"):
 # ---------------------------
 if submit:
     input_data = pd.DataFrame([{
-        'HighBP': 1 if high_bp else 0, 'HighChol': 1 if high_chol else 0, 'CholCheck': 1 if chol_check else 0,
-        'BMI': imc_calculado, 'Smoker': 1 if smoker else 0, 'Stroke': 1 if stroke else 0,
-        'HeartDiseaseorAttack': 1 if heart_dis else 0, 'PhysActivity': 1 if phys_act else 0,
-        'Fruits': 1 if fruits else 0, 'Veggies': 1 if veggies else 0, 'HvyAlcoholConsump': 1 if hvy_alcohol else 0,
-        'AnyHealthcare': 1 if healthcare else 0, 'NoDocbcCost': 1 if no_doc_cost else 0, 'GenHlth': gen_hlth,
-        'DiffWalk': 1 if diff_walk else 0, 'Sex': sex, 'Age': age, 'Education': education, 'Income': income
-    }])
+    'HighBP': 1 if high_bp else 0,
+    'HighChol': 1 if high_chol else 0,
+    'CholCheck': 1 if chol_check else 0,
+    'BMI': imc_calculado,
+    'Smoker': 1 if smoker else 0,
+    'Stroke': 1 if stroke else 0,
+    'HeartDiseaseorAttack': 1 if heart_dis else 0,
+    'PhysActivity': 1 if phys_act else 0,
+    'Fruits': 1 if fruits else 0,
+    'Veggies': 1 if veggies else 0,
+    'HvyAlcoholConsump': 1 if hvy_alcohol else 0,
+    'AnyHealthcare': 1 if healthcare else 0,
+    'NoDocbcCost': 1 if no_doc_cost else 0,
+    'GenHlth': gen_hlth,
+    'DiffWalk': 1 if diff_walk else 0,
+    'Sex': sex,
+    'Age': age,
+    'Education': education,
+    'Income': income
+}])
 
     try:
         input_data = input_data[modelo.feature_names_in_]
@@ -173,7 +182,7 @@ if submit:
     prob = modelo.predict_proba(input_data)[0][1]
     st.divider()
     status_risco = "ALTO RISCO" if prob >= threshold_clinico else "BAIXO RISCO"
-    
+
     if prob >= threshold_clinico:
         st.error(f"### ⚠️ {status_risco} IDENTIFICADO: {prob:.1%}")
     else:
@@ -203,10 +212,11 @@ with tab_conf:
 
 with tab_metrics:
     st.write("Métricas extraídas do arquivo PKL:")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Recall (Sensibilidade)", f"{recall_val:.2%}" if recall_val else "N/A")
-    c2.metric("Avg Precision (AP)", f"{pr_auc_val:.3f}" if pr_auc_val else "N/A")
-    c3.metric("ROC AUC", f"{roc_auc_val:.3f}" if roc_auc_val else "N/A")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Recall (Positivo)", f"{recall_val:.2%}" if recall_val else "N/A")
+    c2.metric("F1-Score (Positivo)", f"{f1_val:.2f}" if f1_val else "N/A")
+    c3.metric("Avg Precision (AP)", f"{pr_auc_val:.3f}" if pr_auc_val else "N/A")
+    c4.metric("ROC AUC", f"{roc_auc_val:.3f}" if roc_auc_val else "N/A")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
 
