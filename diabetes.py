@@ -125,10 +125,14 @@ with st.form("form_clinico"):
         # 🔎 Nota adicional sobre IMC
         st.markdown("""
         **Nota sobre IMC (Body Mass Index):**  
-        Neste aplicativo o IMC é derivado de dados autorreferidos do CDC (BRFSS).  
-        Aproximadamente 92,1% das observações do dataset apresentam valores entre 20 e 40, faixa que cobre desde eutrofia até obesidade classe II.  
-        Valores extremos de IMC (ex.: > 40) estão presentes em pequena proporção e refletem variabilidade e possíveis imprecisões inerentes a dados autorreferidos, sendo mantidos no dataset para preservar a distribuição original.  
-        Esses valores devem ser interpretados com cautela, especialmente em análises individuais.
+        Neste aplicativo o IMC é derivado de dados autorreferidos do CDC (BRFSS). Aproximadamente 92,1% 
+        das observações do dataset apresentam valores entre 20 e 40, faixa que cobre desde eutrofia até 
+        obesidade classe II.  
+        
+        Valores extremos de IMC (ex.: > 40) estão presentes em pequena proporção e refletem variabilidade e 
+        possíveis imprecisões inerentes a dados autorreferidos, sendo mantidos no dataset para preservar a 
+        distribuição original. Esses valores devem ser interpretados com cautela, especialmente em análises 
+        individuais.
         """)
 
     with col2:
@@ -219,5 +223,6 @@ with tab_metrics:
     c4.metric("ROC AUC", f"{roc_auc_val:.3f}" if roc_auc_val else "N/A")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
 
 
