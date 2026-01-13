@@ -8,7 +8,7 @@ import numpy as np
 from datetime import datetime
 from typing import Optional
 
-# Tenta importar bibliotecas para conversão de SVG para PNG (melhora a renderização)
+# Tenta importar bibliotecas para conversão de SVG para PNG
 try:
     import cairosvg
     from PIL import Image
@@ -21,23 +21,8 @@ except Exception:
 # ---------------------------
 st.set_page_config(page_title="Triagem Inteligente de Diabetes", layout="wide")
 
-# Estilo CSS para melhorar a estética
-st.markdown("""
-    <style>
-    .main {
-        background-color: #f5f7f9;
-    }
-    .stMetric {
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
 # ---------------------------
-# Funções de Suporte
+# Carregamento do modelo
 # ---------------------------
 @st.cache_resource
 def carregar_modelo(path="modelo_diabetes_vtl.pkl"):
@@ -46,58 +31,38 @@ def carregar_modelo(path="modelo_diabetes_vtl.pkl"):
     except Exception:
         return None
 
-def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] = None, max_height: int = 640):
-    if not os.path.exists(path):
-        st.warning(f"Arquivo não encontrado: {os.path.basename(path)}")
-        return
-
-    if CAIROSVG_AVAILABLE:
-        try:
-            with open(path, "rb") as f:
-                svg_bytes = f.read()
-            png_bytes = cairosvg.svg2png(bytestring=svg_bytes, scale=scale)
-            img = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
-            st.image(img, use_column_width=True, caption=caption)
-            return
-        except Exception:
-            pass
-
-    # Fallback: embed SVG direto via HTML
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            svg_text = f.read()
-        html = f"<div style='max-height:{max_height}px; overflow:auto;'>{svg_text}</div>"
-        st.components.v1.html(html, height=max_height + 40, scrolling=True)
-        if caption:
-            st.caption(caption)
-    except Exception:
-        st.warning(f"Não foi possível renderizar: {os.path.basename(path)}")
-
-# ---------------------------
-# Carregamento do modelo
-# ---------------------------
 data = carregar_modelo()
 if data is None:
-    st.error("Erro crítico: Arquivo 'modelo_diabetes_vtl.pkl' não encontrado.")
+    st.error("Erro crítico: Arquivo 'modelo_diabetes_vtl.pkl' não encontrado ou inválido.")
     st.stop()
 
 modelo = data.get('pipeline') or data.get('model') or data.get('estimator')
 threshold_clinico = data.get('threshold', 0.25)
 
 # ---------------------------
-# Cabeçalho e Timezone
+# Timezone e cabeçalho
 # ---------------------------
 fuso_br = pytz.timezone('America/Sao_Paulo')
 data_atual = datetime.now(fuso_br).strftime('%d/%m/%Y %H:%M')
 
 st.title("🏥 Sistema de Apoio à Decisão Clínica: Diabetes")
-st.markdown(f"**Analista Responsável:** Portal de Triagem Preventiva | **Data:** {data_atual}")
+st.markdown(f"Analista Responsável: Portal de Triagem Preventiva | Data: {data_atual} (Horário de Brasília)")
+
+st.markdown(
+    "Origem dos dados: Este projeto utiliza o dataset Diabetes Health Indicators do Centers for Disease Control and Prevention (CDC), "
+    "uma base de dados robusta com mais de 250 mil registros que traduzem o perfil de saúde, estilo de vida e indicadores socioeconômicos da população."
+)
 
 with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     st.markdown("""
-    **Origem dos dados:** Dataset CDC (250 mil+ registros).
-    **Justificativa:** O modelo integra fatores socioeconômicos (renda/educação) e estilo de vida para prever o risco metabólico.
-    **Estratificação FGV:** Mapeamento de renda adaptado ao contexto brasileiro (Salários Mínimos).
+    Justificativa das Variáveis:
+    * 💰 **Socioeconômicos:** Renda e educação são determinantes sociais críticos.
+    * 🚬 **Estilo de Vida:** Tabagismo e sedentarismo são marcadores de risco metabólico.
+    * 🏃 **Atividade Física:** Identifica sedentarismo, um marcador crítico de risco metabólico.
+    * 🏥 **Custo:** Avalia barreiras financeiras que impedem o diagnóstico precoce.
+
+    **Estratificação Socioeconômica (FGV):**
+    As classes econômicas foram mapeadas em níveis ordinais baseados em Salários Mínimos (SM) para adaptar o modelo ao contexto brasileiro.
     """)
 
 # ---------------------------
@@ -117,7 +82,7 @@ with st.form("form_clinico"):
             "Classe C (4 a 7 SM)": 4, "Classe C (7 a 15 SM)": 5, "Classe B (15 a 20 SM)": 6,
             "Classe A (20 a 30 SM)": 7, "Classe A (Acima de 30 SM)": 8
         }
-        escolha_renda = st.selectbox("Renda (FGV)", options=list(map_sm_fgv.keys()))
+        escolha_renda = st.selectbox("Classificação Econômica (FGV - Salários Mínimos)", options=list(map_sm_fgv.keys()))
         income = map_sm_fgv[escolha_renda]
         
         opcoes_edu = {1:"Fundamental incompleto", 2:"Fundamental", 3:"Médio incompleto", 4:"Médio completo", 5:"Técnico/Superior inc.", 6:"Graduado"}
@@ -126,37 +91,39 @@ with st.form("form_clinico"):
         sex = st.radio("Sexo Biológico", options=[0, 1], format_func=lambda x: "Feminino" if x==0 else "Masculino")
         
         opcoes_gen = {1:"Excelente", 2:"Muito Boa", 3:"Boa", 4:"Regular", 5:"Ruim"}
-        gen_hlth = st.select_slider("Saúde geral", options=list(opcoes_gen.keys()), format_func=lambda x: opcoes_gen[x])
+        gen_hlth = st.select_slider("Como avalia sua saúde geral?", options=list(opcoes_gen.keys()), format_func=lambda x: opcoes_gen[x])
         
         st.write("---")
-        peso = st.number_input("Peso (kg)", min_value=30.0, value=75.0)
-        altura_cm = st.number_input("Altura (cm)", min_value=100, value=170)
+        st.markdown("**Cálculo de IMC**")
+        c1_imc, c2_imc = st.columns(2)
+        peso = c1_imc.number_input("Peso (kg)", min_value=30.0, value=75.0)
+        altura_cm = c2_imc.number_input("Altura (cm)", min_value=100, value=170)
         imc_calculado = round(peso / ((altura_cm / 100) ** 2), 1)
-        st.info(f"IMC: {imc_calculado}")
+        st.info(f"IMC Calculado: **{imc_calculado}**")
 
     with col2:
         st.subheader("Histórico Clínico")
         high_bp = st.checkbox("Pressão Alta?")
         high_chol = st.checkbox("Colesterol Alto?")
-        chol_check = st.checkbox("Exame de colesterol (5 anos)?")
+        chol_check = st.checkbox("Exame de colesterol (últimos 5 anos)?")
         stroke = st.checkbox("Já teve AVC?")
-        heart_dis = st.checkbox("Doença Cardíaca?")
-        smoker = st.checkbox("Fumante (100+ cigarros)?")
-        phys_act = st.checkbox("Atividade física recente?")
-        fruits = st.checkbox("Consome Frutas?")
-        veggies = st.checkbox("Consome Vegetais?")
-        hvy_alcohol = st.checkbox("Álcool em excesso?")
-        healthcare = st.checkbox("Plano de saúde?")
-        no_doc_cost = st.checkbox("Barreira de custo médico?")
-        diff_walk = st.checkbox("Dificuldade de locomoção?")
+        heart_dis = st.checkbox("Doença Cardíaca ou Infarto?")
+        smoker = st.checkbox("Já fumou 100+ cigarros na vida?")
+        phys_act = st.checkbox("Atividade física no último mês?")
+        fruits = st.checkbox("Consome Frutas regularmente?")
+        veggies = st.checkbox("Consome Vegetais regularmente?")
+        hvy_alcohol = st.checkbox("Consumo excessivo de álcool?")
+        healthcare = st.checkbox("Possui plano de saúde?")
+        no_doc_cost = st.checkbox("Deixou de ir ao médico por custo?")
+        diff_walk = st.checkbox("Dificuldade para caminhar/subir escadas?")
         
         submit = st.form_submit_button("GERAR ANÁLISE DE RISCO")
 
 # ---------------------------
-# Lógica de Previsão
+# Previsão e relatório
 # ---------------------------
 if submit:
-    input_df = pd.DataFrame([{
+    input_data = pd.DataFrame([{
         'HighBP': 1 if high_bp else 0, 'HighChol': 1 if high_chol else 0, 'CholCheck': 1 if chol_check else 0,
         'BMI': imc_calculado, 'Smoker': 1 if smoker else 0, 'Stroke': 1 if stroke else 0,
         'HeartDiseaseorAttack': 1 if heart_dis else 0, 'PhysActivity': 1 if phys_act else 0,
@@ -166,50 +133,103 @@ if submit:
     }])
 
     try:
-        input_df = input_df[modelo.feature_names_in_]
-    except:
+        input_data = input_data[modelo.feature_names_in_]
+    except Exception:
         pass
 
-    prob = modelo.predict_proba(input_df)[0][1]
-    status = "ALTO RISCO" if prob >= threshold_clinico else "BAIXO RISCO"
-    
+    prob = modelo.predict_proba(input_data)[0][1]
     st.divider()
-    if prob >= threshold_clinico:
-        st.error(f"### ⚠️ {status}: {prob:.1%}")
-        st.warning("Conduta: Encaminhamento prioritário para exames de Glicemia/HbA1c.")
-    else:
-        st.success(f"### ✅ {status}: {prob:.1%}")
+    status_risco = "ALTO RISCO" if prob >= threshold_clinico else "BAIXO RISCO"
     
-    # Botão de download do relatório
-    relatorio = f"RELATÓRIO DE TRIAGEM\nData: {data_atual}\nResultado: {status} ({prob:.1%})\nIMC: {imc_calculado}"
-    st.download_button("📥 Baixar Relatório", relatorio, file_name="resultado_triagem.txt")
+    if prob >= threshold_clinico:
+        st.error(f"### ⚠️ {status_risco} IDENTIFICADO: {prob:.1%}")
+        st.markdown("**Conduta sugerida:** Encaminhamento para Glicemia de Jejum e HbA1c.")
+    else:
+        st.success(f"### ✅ {status_risco} IDENTIFICADO: {prob:.1%}")
+
+    texto_relatorio = f"""
+==================================================
+RELATÓRIO DE TRIAGEM PREVENTIVA - DIABETES (IA)
+==================================================
+Data/Hora: {data_atual}
+Risco: {prob:.1%} ({status_risco})
+--------------------------------------------------
+SÍNTESE DOS DADOS:
+- IMC: {imc_calculado}
+- Renda: {escolha_renda}
+- Saúde Geral: {opcoes_gen[gen_hlth]}
+--------------------------------------------------
+NOTA: Baseado em modelo preditivo CDC/BRFSS.
+==================================================
+"""
+    st.download_button(label="📥 Baixar Relatório Clínico", data=texto_relatorio,
+                       file_name=f"triagem_{datetime.now().strftime('%d%m%Y')}.txt")
 
 # ---------------------------
-# Auditoria Técnica (Abas)
+# Util: exibir SVG com correção de visibilidade
+# ---------------------------
+def display_svg_high_quality(path: str, scale: int = 3, caption: Optional[str] = None, max_height: int = 720):
+    if not os.path.exists(path):
+        st.warning(f"Arquivo não encontrado: {os.path.basename(path)}")
+        return
+
+    if CAIROSVG_AVAILABLE:
+        try:
+            with open(path, "rb") as f:
+                svg_bytes = f.read()
+            png_bytes = cairosvg.svg2png(bytestring=svg_bytes, scale=scale)
+            st.image(png_bytes, use_column_width=True, caption=caption)
+            return
+        except Exception:
+            pass
+
+    # Fallback: Injeção direta de SVG no HTML com largura 100% para garantir visibilidade
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            svg_text = f.read()
+        # Adiciona estilo para garantir que o SVG ocupe o espaço e seja visível
+        html = f"""
+        <div style="width:100%; display:flex; justify-content:center; background-color:white; padding:10px; border-radius:5px;">
+            <style>svg {{ width: 100%; height: auto; }}</style>
+            {svg_text}
+        </div>
+        """
+        st.components.v1.html(html, height=max_height, scrolling=True)
+        if caption:
+            st.caption(caption)
+    except Exception:
+        st.warning(f"Não foi possível ler o arquivo: {os.path.basename(path)}")
+
+# ---------------------------
+# Auditoria Técnica
 # ---------------------------
 st.divider()
-st.subheader("📊 Auditoria de Performance do Modelo")
 tab_pr, tab_sep, tab_brier, tab_conf, tab_metrics = st.tabs([
-    "Curvas Recall-Precision", "Separação de Classes", "Brier Score", "Matriz de Confusão", "Métricas"
+    "Curva Precisão-Recall", "Separação de Classes", "Brier Score", "Matriz de Confusão", "Métricas"
 ])
 
 with tab_pr:
-    display_svg_high_quality("Curvas Recall-Precision.svg", caption="Trade-off Precisão/Sensibilidade")
+    st.header("Curva Precisão-Recall")
+    display_svg_high_quality("Curvas Recall-Precision.svg", caption="Análise Precision-Recall")
 
 with tab_sep:
-    display_svg_high_quality("Separação de Classes.svg", caption="Distribuição de Probabilidades")
+    st.header("Separação de Classes")
+    display_svg_high_quality("Separação de Classes.svg", caption="Separação de Classes")
 
 with tab_brier:
-    display_svg_high_quality("Brier Score.svg", caption="Calibração do Modelo")
+    st.header("Brier Score")
+    display_svg_high_quality("Brier Score.svg", caption="Gráfico de Brier Score")
 
 with tab_conf:
-    display_svg_high_quality("Matriz de Confusão.svg", caption="Erros e Acertos na Validação")
+    st.header("Matriz de Confusão")
+    display_svg_high_quality("Matriz de Confusão.svg", caption="Matriz de Confusão")
 
 with tab_metrics:
+    st.header("Métricas de Validação")
+    recall_val = data.get('recall', None)
+    pr_auc_val = data.get('pr_auc', None)
     col_a, col_b = st.columns(2)
-    with col_a:
-        st.metric("Recall (Sensibilidade)", f"{data.get('recall', 0):.2%}")
-    with col_b:
-        st.metric("PR AUC (Average Precision)", f"{data.get('pr_auc', 0):.3f}")
+    col_a.metric("Recall (validação)", f"{recall_val:.2%}" if recall_val else "N/A")
+    col_b.metric("Average Precision (PR AUC)", f"{pr_auc_val:.3f}" if pr_auc_val else "N/A")
 
-st.caption("Aviso: Esta é uma ferramenta estatística de suporte e não substitui o diagnóstico médico.")
+st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
