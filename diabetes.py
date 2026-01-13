@@ -63,7 +63,7 @@ data_atual = datetime.now(fuso_br).strftime('%d/%m/%Y %H:%M')
 st.title("🏥 Sistema de Apoio à Decisão Clínica: Diabetes")
 st.markdown(f"**Analista Responsável:** Portal de Triagem Preventiva | **Data:** {data_atual} (Horário de Brasília)")
 
-# Nota de origem dos dados (se desejar manter)
+# Nota de origem dos dados
 st.markdown(
     "**Origem dos dados:** Este projeto utiliza o dataset *Diabetes Health Indicators* do Centers for Disease Control and Prevention (CDC), uma base de dados robusta com mais de 250 mil registros que traduzem o perfil de saúde, estilo de vida e indicadores socioeconômicos da população."
 )
@@ -81,7 +81,7 @@ with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     """)
 
 # ---------------------------
-# Formulário de entrada (mantive seu formulário)
+# Formulário de entrada
 # ---------------------------
 with st.form("form_clinico"):
     col1, col2 = st.columns(2)
@@ -231,71 +231,48 @@ def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] =
         st.warning(f"Não foi possível renderizar o arquivo: {os.path.basename(path)}")
 
 # ---------------------------
-# Auditoria Técnica: exibir apenas Recall e Average Precision
+# Auditoria Técnica: gráficos e métricas em abas separadas
 # ---------------------------
 st.divider()
-with st.expander("🔍 Auditoria Técnica (Gráficos e Métricas)"):
-    st.write("Abaixo estão os artefatos de avaliação do modelo. Se algum SVG não estiver disponível, uma mensagem será exibida.")
+tab_graphs, tab_metrics = st.tabs(["📊 Gráficos de Avaliação", "📈 Métricas"])
 
-    # Layout 2x2 para gráficos com espaçamento garantido
+with tab_graphs:
+    st.write("Artefatos de avaliação do modelo. Se algum SVG não estiver disponível, uma mensagem será exibida.")
+    # Organiza os quatro gráficos em duas linhas com espaçamento garantido
     row1_col1, row1_col2 = st.columns(2)
     row2_col1, row2_col2 = st.columns(2)
 
-    # Curva Precisão-Recall
     with row1_col1:
-        display_svg_high_quality("Curva Precisão-Recall.svg", scale=3, caption="Curva Precisão-Recall", max_height=420)
-
-    # Separação de Classes
+        display_svg_high_quality("Curva Precisão-Recall.svg", scale=3, caption="Curva Precisão-Recall", max_height=480)
     with row1_col2:
-        display_svg_high_quality("Separação de Classes.svg", scale=3, caption="Separação de Classes", max_height=420)
-
-    # Brier Score (exibe gráfico; valor já presente no gráfico)
+        display_svg_high_quality("Separação de Classes.svg", scale=3, caption="Separação de Classes", max_height=480)
     with row2_col1:
-        display_svg_high_quality("Brier Score.svg", scale=3, caption="Brier Score (gráfico)", max_height=420)
-
-    # Matriz de Confusão
+        display_svg_high_quality("Brier Score.svg", scale=3, caption="Brier Score (gráfico)", max_height=480)
     with row2_col2:
         if os.path.exists("Matriz de Confusão.svg"):
-            display_svg_high_quality("Matriz de Confusão.svg", scale=3, caption="Matriz de Confusão", max_height=420)
+            display_svg_high_quality("Matriz de Confusão.svg", scale=3, caption="Matriz de Confusão", max_height=480)
         elif os.path.exists("Confusion Matrix.svg"):
-            display_svg_high_quality("Confusion Matrix.svg", scale=3, caption="Matriz de Confusão", max_height=420)
+            display_svg_high_quality("Confusion Matrix.svg", scale=3, caption="Matriz de Confusão", max_height=480)
         else:
             st.warning("Arquivo 'Matriz de Confusão.svg' não encontrado no repositório.")
 
-    st.markdown("---")
-
-    # Recupera métricas do artefato; se ausentes, permite entrada manual na sidebar
+with tab_metrics:
+    st.write("Métricas de validação do modelo (lidas do artefato). Se estiverem ausentes, exibimos N/A.")
     recall_val = None
     pr_auc_val = None
     if isinstance(data, dict):
         recall_val = data.get('recall', None)
         pr_auc_val = data.get('pr_auc', None)
 
-    st.write("Se as métricas não estiverem presentes no artefato, você pode inserir valores manuais na barra lateral para exibição.")
-    with st.sidebar.expander("Inserir métricas manualmente (opcional)"):
-        manual_recall = st.number_input("Recall (validação) manual (0-1)", min_value=0.0, max_value=1.0, value=float(recall_val) if recall_val is not None else 0.0, step=0.001, format="%.4f")
-        manual_pr_auc = st.number_input("Average Precision (PR AUC) manual (0-1)", min_value=0.0, max_value=1.0, value=float(pr_auc_val) if pr_auc_val is not None else 0.0, step=0.001, format="%.4f")
-        use_manual = st.checkbox("Usar valores manuais para exibição", value=False)
-
-    # Decide quais valores exibir
-    display_recall = None
-    display_pr_auc = None
-    if use_manual:
-        display_recall = manual_recall
-        display_pr_auc = manual_pr_auc
-    else:
-        display_recall = recall_val
-        display_pr_auc = pr_auc_val
-
     col_a, col_b = st.columns(2)
-    if display_recall is None:
+    if recall_val is None:
         col_a.metric("Recall (validação)", "N/A")
     else:
-        col_a.metric("Recall (validação)", f"{display_recall:.2%}")
+        col_a.metric("Recall (validação)", f"{recall_val:.2%}")
 
-    if display_pr_auc is None:
+    if pr_auc_val is None:
         col_b.metric("Average Precision (PR AUC)", "N/A")
     else:
-        col_b.metric("Average Precision (PR AUC)", f"{display_pr_auc:.3f}")
+        col_b.metric("Average Precision (PR AUC)", f"{pr_auc_val:.3f}")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
