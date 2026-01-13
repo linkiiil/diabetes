@@ -30,6 +30,9 @@ st.markdown("""
         width: 100%;
         border-radius: 8px;
     }
+    /* garante que embeds SVG não cortem em containers pequenos */
+    .svg-embed-wrapper { width:100%; overflow:auto; display:flex; justify-content:center; }
+    .svg-embed-wrapper svg { max-width:100%; height:auto; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -60,7 +63,7 @@ data_atual = datetime.now(fuso_br).strftime('%d/%m/%Y %H:%M')
 st.title("🏥 Sistema de Apoio à Decisão Clínica: Diabetes")
 st.markdown(f"**Analista Responsável:** Portal de Triagem Preventiva | **Data:** {data_atual} (Horário de Brasília)")
 
-# Nota adicional solicitada pelo usuário
+# Nota de origem dos dados (se desejar manter)
 st.markdown(
     "**Origem dos dados:** Este projeto utiliza o dataset *Diabetes Health Indicators* do Centers for Disease Control and Prevention (CDC), uma base de dados robusta com mais de 250 mil registros que traduzem o perfil de saúde, estilo de vida e indicadores socioeconômicos da população."
 )
@@ -78,7 +81,7 @@ with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     """)
 
 # ---------------------------
-# Formulário de entrada
+# Formulário de entrada (mantive seu formulário)
 # ---------------------------
 with st.form("form_clinico"):
     col1, col2 = st.columns(2)
@@ -155,7 +158,6 @@ if submit:
     try:
         input_data = input_data[modelo.feature_names_in_]
     except Exception:
-        # se não for possível reordenar, assume-se que as colunas já batem
         pass
 
     prob = modelo.predict_proba(input_data)[0][1]
@@ -190,21 +192,22 @@ if submit:
 # ---------------------------
 # Util: exibir SVG com melhor qualidade quando possível
 # ---------------------------
-def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] = None):
+def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] = None, max_height: int = 420):
     """
     Tenta converter SVG para PNG em alta resolução usando cairosvg (se disponível).
     Se cairosvg não estiver instalado, embute o SVG diretamente via components.html.
     scale: multiplicador de resolução (1,2,3...). Para SVG vetorial, a conversão melhora raster output.
+    max_height: altura máxima do container em pixels para evitar corte.
     """
     if not os.path.exists(path):
         st.warning(f"Arquivo não encontrado: {os.path.basename(path)}")
         return
 
+    # Preferir conversão para PNG para controle de tamanho e evitar cortes
     if CAIROSVG_AVAILABLE:
         try:
             with open(path, "rb") as f:
                 svg_bytes = f.read()
-            # converter para PNG em memória com escala
             png_bytes = cairosvg.svg2png(bytestring=svg_bytes, scale=scale)
             img = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
             st.image(img, use_column_width=True, caption=caption)
@@ -216,13 +219,12 @@ def display_svg_high_quality(path: str, scale: int = 2, caption: Optional[str] =
     # fallback: embed SVG diretamente (mantém qualidade vetorial em navegadores que suportam)
     try:
         svg_text = open(path, "r", encoding="utf-8").read()
-        # ajustar largura responsiva
         html = f"""
-        <div style="width:100%; display:flex; justify-content:center;">
+        <div class="svg-embed-wrapper" style="height:{max_height}px;">
             {svg_text}
         </div>
         """
-        st.components.v1.html(html, height=400)
+        st.components.v1.html(html, height=max_height + 20, scrolling=True)
         if caption:
             st.caption(caption)
     except Exception:
@@ -235,49 +237,65 @@ st.divider()
 with st.expander("🔍 Auditoria Técnica (Gráficos e Métricas)"):
     st.write("Abaixo estão os artefatos de avaliação do modelo. Se algum SVG não estiver disponível, uma mensagem será exibida.")
 
-    # Layout 2x2 para gráficos
+    # Layout 2x2 para gráficos com espaçamento garantido
     row1_col1, row1_col2 = st.columns(2)
     row2_col1, row2_col2 = st.columns(2)
 
     # Curva Precisão-Recall
     with row1_col1:
-        display_svg_high_quality("Curva Precisão-Recall.svg", scale=3, caption="Curva Precisão-Recall")
+        display_svg_high_quality("Curva Precisão-Recall.svg", scale=3, caption="Curva Precisão-Recall", max_height=420)
 
     # Separação de Classes
     with row1_col2:
-        display_svg_high_quality("Separação de Classes.svg", scale=3, caption="Separação de Classes")
+        display_svg_high_quality("Separação de Classes.svg", scale=3, caption="Separação de Classes", max_height=420)
 
     # Brier Score (exibe gráfico; valor já presente no gráfico)
     with row2_col1:
-        display_svg_high_quality("Brier Score.svg", scale=3, caption="Brier Score (gráfico)")
+        display_svg_high_quality("Brier Score.svg", scale=3, caption="Brier Score (gráfico)", max_height=420)
 
     # Matriz de Confusão
     with row2_col2:
-        # tenta nomes alternativos para compatibilidade
         if os.path.exists("Matriz de Confusão.svg"):
-            display_svg_high_quality("Matriz de Confusão.svg", scale=3, caption="Matriz de Confusão")
+            display_svg_high_quality("Matriz de Confusão.svg", scale=3, caption="Matriz de Confusão", max_height=420)
         elif os.path.exists("Confusion Matrix.svg"):
-            display_svg_high_quality("Confusion Matrix.svg", scale=3, caption="Matriz de Confusão")
+            display_svg_high_quality("Confusion Matrix.svg", scale=3, caption="Matriz de Confusão", max_height=420)
         else:
             st.warning("Arquivo 'Matriz de Confusão.svg' não encontrado no repositório.")
 
     st.markdown("---")
-    # Exibir apenas Recall e Average Precision (PR AUC)
+
+    # Recupera métricas do artefato; se ausentes, permite entrada manual na sidebar
     recall_val = None
     pr_auc_val = None
     if isinstance(data, dict):
         recall_val = data.get('recall', None)
         pr_auc_val = data.get('pr_auc', None)
 
+    st.write("Se as métricas não estiverem presentes no artefato, você pode inserir valores manuais na barra lateral para exibição.")
+    with st.sidebar.expander("Inserir métricas manualmente (opcional)"):
+        manual_recall = st.number_input("Recall (validação) manual (0-1)", min_value=0.0, max_value=1.0, value=float(recall_val) if recall_val is not None else 0.0, step=0.001, format="%.4f")
+        manual_pr_auc = st.number_input("Average Precision (PR AUC) manual (0-1)", min_value=0.0, max_value=1.0, value=float(pr_auc_val) if pr_auc_val is not None else 0.0, step=0.001, format="%.4f")
+        use_manual = st.checkbox("Usar valores manuais para exibição", value=False)
+
+    # Decide quais valores exibir
+    display_recall = None
+    display_pr_auc = None
+    if use_manual:
+        display_recall = manual_recall
+        display_pr_auc = manual_pr_auc
+    else:
+        display_recall = recall_val
+        display_pr_auc = pr_auc_val
+
     col_a, col_b = st.columns(2)
-    if recall_val is None:
+    if display_recall is None:
         col_a.metric("Recall (validação)", "N/A")
     else:
-        col_a.metric("Recall (validação)", f"{recall_val:.2%}")
+        col_a.metric("Recall (validação)", f"{display_recall:.2%}")
 
-    if pr_auc_val is None:
+    if display_pr_auc is None:
         col_b.metric("Average Precision (PR AUC)", "N/A")
     else:
-        col_b.metric("Average Precision (PR AUC)", f"{pr_auc_val:.3f}")
+        col_b.metric("Average Precision (PR AUC)", f"{display_pr_auc:.3f}")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
