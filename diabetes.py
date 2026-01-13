@@ -2,6 +2,7 @@ import io
 import os
 import joblib
 import pytz
+import base64
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -27,17 +28,16 @@ def carregar_modelo(path="modelo_diabetes_vtl.pkl"):
         return None
 
 def display_svg(path: str, caption: str):
-    """Lê o arquivo SVG e renderiza como HTML puro para evitar bloqueios do navegador."""
+    """Renderiza o SVG convertendo para Base64 para garantir compatibilidade total."""
     if os.path.exists(path):
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                svg_content = f.read()
+            with open(path, "rb") as f:
+                svg_data = f.read()
             
-            # Garante que o SVG seja responsivo e visível
+            b64 = base64.b64encode(svg_data).decode("utf-8")
             html = f"""
-            <div style="background-color: white; padding: 15px; border-radius: 8px; border: 1px solid #eee; display: flex; justify-content: center;">
-                <style>svg {{ width: 100%; height: auto; max-width: 800px; }}</style>
-                {svg_content}
+            <div style="display: flex; justify-content: center; background-color: white; padding: 20px; border-radius: 10px; border: 1px solid #eee;">
+                <img src="data:image/svg+xml;base64,{b64}" style="width: 100%; max-width: 800px; height: auto;"/>
             </div>
             """
             st.write(f"**{caption}**")
@@ -45,28 +45,26 @@ def display_svg(path: str, caption: str):
         except Exception as e:
             st.error(f"Erro ao processar {path}: {e}")
     else:
-        st.warning(f"Arquivo não encontrado no diretório: {path}")
+        st.warning(f"⚠️ Arquivo não encontrado no diretório: {path}")
 
 # ---------------------------
-# Carregamento do modelo
+# Carregamento do modelo e Dados
 # ---------------------------
 data = carregar_modelo()
 
 if data is None:
-    st.error("❌ ERRO: Arquivo 'modelo_diabetes_vtl.pkl' não encontrado.")
-    st.info(f"Arquivos detectados na pasta: {os.listdir('.')}")
+    st.error("❌ ERRO CRÍTICO: 'modelo_diabetes_vtl.pkl' não encontrado.")
     st.stop()
 
-# MAPEAMENTO DE CHAVES (Conforme o seu export_data)
+# Mapeamento conforme seu export_data
 modelo = data.get('pipeline')
 threshold_clinico = data.get('threshold', 0.25)
-# Aqui ajustamos para os nomes que você definiu no dicionário:
 recall_val = data.get('recall_pos') 
 pr_auc_val = data.get('avg_precision')
 roc_auc_val = data.get('roc_auc')
 
 # ---------------------------
-# Timezone e Cabeçalho
+# Cabeçalho
 # ---------------------------
 fuso_br = pytz.timezone('America/Sao_Paulo')
 data_atual = datetime.now(fuso_br).strftime('%d/%m/%Y %H:%M')
@@ -160,7 +158,7 @@ if submit:
 
     try:
         input_data = input_data[modelo.feature_names_in_]
-    except:
+    except Exception:
         pass
 
     prob = modelo.predict_proba(input_data)[0][1]
@@ -183,23 +181,21 @@ tab_pr, tab_sep, tab_brier, tab_conf, tab_metrics = st.tabs([
 ])
 
 with tab_pr:
-    display_svg("Curvas Recall-Precision.svg", "Gráfico Precision-Recall")
+    display_svg("Curvas Recall-Precision.svg", "Análise de Precisão e Sensibilidade")
 
 with tab_sep:
-    display_svg("Separação de Classes.svg", "Distribuição das Predições")
+    display_svg("Separação de Classes.svg", "Distribuição das Classes Preditas")
 
 with tab_brier:
-    display_svg("Brier Score.svg", "Análise de Calibração (Brier Score)")
+    display_svg("Brier Score.svg", "Avaliação de Calibração")
 
 with tab_conf:
-    display_svg("Matriz de Confusão.svg", "Matriz de Confusão (Validação)")
+    display_svg("Matriz de Confusão.svg", "Matriz de Confusão (Teste)")
 
 with tab_metrics:
-    st.write("Métricas consolidadas do conjunto de teste:")
+    st.write("Métricas extraídas do arquivo PKL:")
     c1, c2, c3 = st.columns(3)
-    
-    # Exibindo os valores com tratamento para caso sejam nulos
-    c1.metric("Recall (Classe 1)", f"{recall_val:.2%}" if recall_val else "N/A")
+    c1.metric("Recall (Sensibilidade)", f"{recall_val:.2%}" if recall_val else "N/A")
     c2.metric("Avg Precision (AP)", f"{pr_auc_val:.3f}" if pr_auc_val else "N/A")
     c3.metric("ROC AUC", f"{roc_auc_val:.3f}" if roc_auc_val else "N/A")
 
