@@ -49,7 +49,7 @@ st.markdown(f"**Analista Responsável:** Portal de Triagem Preventiva | **Data:*
 with st.expander("📝 Nota Metodológica e Motivação Técnica"):
     st.markdown("""
     **Justificativa das Variáveis:**
-    * **💰 Socioeconômicos:** Renda e educação são determinantes sociais críticos. 
+    * **💰 Socioeconômicas:** Renda e educação são determinantes sociais críticos. 
     * **🚬 Estilo de Vida:** Tabagismo e sedentarismo são marcadores de risco metabólico.
     * **🏃 Atividade Física:** Identifica sedentarismo, um marcador crítico de risco metabólico.
     * **🏥 Custo:** Avalia barreiras financeiras que impedem o diagnóstico precoce.
@@ -216,6 +216,7 @@ with st.expander("🔍 Auditoria Técnica (Gráficos e Métricas)"):
     col_c.metric("PR AUC (Precision-Recall)", f"{pr_auc_val:.3f}")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
+
 
 
 
