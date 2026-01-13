@@ -226,8 +226,3 @@ with tab_metrics:
     c4.metric("ROC AUC", f"{roc_auc_val:.3f}" if roc_auc_val else "N/A")
 
 st.caption("Aviso: Ferramenta estatística de suporte. Não substitui o diagnóstico médico.")
-
-
-
-
-
