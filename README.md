@@ -37,9 +37,9 @@ O modelo original utiliza faixas em dólares (USD). Para evitar distorções cam
 
 O modelo foi estrategicamente calibrado para priorizar a captura de casos positivos (Diabetes), resultando em:
 
-Recall (Sensibilidade): 94.56% (identificando 6637 casos reais no conjunto de teste).
+Recall (Sensibilidade): 94.89% (identificando 6660 casos reais no conjunto de teste).
 
-ROC-AUC: 0.8163.
+ROC-AUC: 0.8166.
 
 Threshold Clínico: 0.25 — ponto de corte otimizado para maximizar a triagem preventiva.
 
@@ -47,19 +47,25 @@ Threshold Clínico: 0.25 — ponto de corte otimizado para maximizar a triagem p
 
 Priorizamos a Sensibilidade para assegurar que o paciente receba orientação precoce.
 
-A imagem detalha a performance utilizando o Threshold de 0.25. Embora gere 22166 falsos positivos, a estratégia garante que apenas 382 casos reais (falsos negativos) não sejam detectados, priorizando a segurança clínica.
+A imagem detalha a performance utilizando o Threshold de 0.25. Embora gere 22417 falsos positivos, a estratégia garante que apenas 359 casos reais (falsos negativos) não sejam detectados, priorizando a segurança clínica.
 
 📂 Estrutura do Repositório
 
 diabetes.py: Aplicação interativa desenvolvida em Streamlit.
 
-modelo_diabetes_vtl.pkl: Binário do modelo LGBM, incluindo transformadores e parâmetros de calibração.
+modelo_diabetes_vtl.pkl: modelo LGBM, incluindo transformadores e parâmetros de calibração.
 
 requirements.txt: Lista de dependências técnicas (Pandas, Scikit-Learn, XGBoost, LightGBM).
 
-matriz_confusao.svg: Gráfico vetorial de performance para documentação.
-
 Projeto - Diabetes.pdf: Relatório técnico completo contendo EDA, SHAP e validação de hipóteses.
+
+Curvas Recall-Precision.svg: Mostra o quão bem o modelo identifica os casos positivos (Recall) sem disparar muitos alarmes falsos (Precision).
+
+Brier Score.svg: Mede a precisão das probabilidades previstas.
+
+Separação de Classes.svg: Mostra o "poder de discriminação" do modelo.
+
+Matriz de Confusão.svg: "Pilar central" para entender onde o modelo está errando, especialmente para diferenciar entre um erro "aceitável" e um erro "perigoso" no contexto médico.
 
 README.md: Guia de apresentação e documentação do projeto.
 
