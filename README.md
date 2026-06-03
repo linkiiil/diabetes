@@ -1,13 +1,13 @@
 # Diabetes
-🏥 Sistema de Triagem Inteligente: Diabetes Risk Predictor
+### 🏥 Sistema de Triagem Inteligente: Diabetes Risk Predictor
 
 Este projeto apresenta uma solução de Machine Learning para a identificação precoce de risco de diabetes, utilizando a base de dados histórica do CDC (Centers for Disease Control and Prevention). O objetivo central é fornecer uma ferramenta de suporte à decisão clínica com foco em Alta Sensibilidade (Recall) para viabilizar triagens populacionais preventivas.
 
-📋 Contexto e Objetivos
+#### 📋 Contexto e Objetivos
 
 O diabetes é uma patologia crônica de elevado impacto socioeconômico. Este modelo foi desenvolvido para converter indicadores de saúde, comportamento e dados socioeconômicos em probabilidades de risco, permitindo intervenções médicas antes do agravamento do quadro clínico.
 
-🛠️ Metodologia e Tecnologias
+### 🛠️ Metodologia e Tecnologias
 Algoritmo Principal: LightGBM (LGBM) otimizado através de busca hiperparamétrica (RandomizedSearchCV).
 
 Pré-processamento: Limpeza de dados duplicados, tratamento de desbalanceamento de classe e mitigação de Data Leakage através da exclusão das variáveis MentHlth e PhysHlth.
@@ -32,7 +32,7 @@ Mapeamento: As 5 classes oficiais da FGV (A a E) foram distribuídas nos 8 níve
 | **Classe B** | 15 a 20 SM | 6 | Alta renda e acesso à saúde privada |
 | **Classe A** | Acima de 20 SM | 7 - 8 | Topo da pirâmide e prevenção plena |
 
-📈 Resultados Técnicos e Estratégia Clínica
+### 📈 Resultados Técnicos e Estratégia Clínica
 
 O modelo foi estrategicamente calibrado para priorizar a captura de casos positivos (Diabetes), resultando em:
 
@@ -42,7 +42,7 @@ ROC-AUC: 0.8166.
 
 Estratégia: Priorizamos a Sensibilidade para assegurar que o paciente receba orientação precoce. Embora gere mais falsos positivos, a estratégia garante que apenas 359 casos reais (falsos negativos) não sejam detectados, priorizando a segurança clínica.
 
-🔍 Auditoria Técnica e Transparência (XAI)
+### 🔍 Auditoria Técnica e Transparência (XAI)
 
 A aplicação conta com uma seção dedicada à Auditoria Técnica, acessível via abas no dashboard. Esta seção permite que gestores de saúde e cientistas de dados validem a confiabilidade de cada predição através de:
 
@@ -52,13 +52,13 @@ Separação de Classes: Visualização da densidade de probabilidade para ambas 
 
 Curva Recall-Precision: Demonstração do trade-off escolhido para o threshold de 0.25.
 
-⚠️ Nota sobre o IMC (Body Mass Index)
+### ⚠️ Nota sobre o IMC (Body Mass Index)
 
 O modelo utiliza o IMC derivado de dados autorreferidos. Durante a análise exploratória (EDA), observou-se que 92,1% dos dados concentram-se entre o IMC 20 e 40.
 
 Valores extremos (ex: IMC > 60) são tratados como ruído estatístico comum em surveys (informações irreais de peso/altura), sendo mantidos para preservar a distribuição original, mas exigindo cautela na interpretação individual.
 
-📂 Estrutura do Repositório
+### 📂 Estrutura do Repositório
 
 diabetes.py: Aplicação interativa desenvolvida em Streamlit.
 
@@ -70,7 +70,7 @@ Projeto - Diabetes.pdf: Relatório técnico contendo EDA, SHAP e validação de 
 
 Gráficos Vetoriais (.svg): Curvas Recall-Precision, Brier Score, Separação de Classes e Matriz de Confusão.
 
-💻 Como Executar Localmente
+### 💻 Como Executar Localmente
 
 Clone o repositório:
 
