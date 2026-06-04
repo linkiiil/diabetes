@@ -61,7 +61,7 @@ O modelo utiliza o IMC derivado de dados autorreferidos. Durante a análise expl
 
 ### 📂 Estrutura do Repositório
 
-Risco_de_Diabetes_Prevenção_por_Machine_Learning.pdf: Apresentação executiva (Slide Deck) resumindo o contexto clínico, a estratégia adotada e os resultados alcançados.
+Diabetes_Predictive_Radar.pdf: Apresentação em slides resumindo o contexto clínico, a estratégia adotada e os resultados alcançados.
 
 Projeto - Diabetes.ipynb: Notebook completo contendo a Análise Exploratória (EDA), desenvolvimento do modelo, análise SHAP e validação das hipóteses.
 
