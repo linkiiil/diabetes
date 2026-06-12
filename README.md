@@ -61,17 +61,23 @@ O modelo utiliza o IMC derivado de dados autorreferidos. Durante a análise expl
 
 ### 📂 Estrutura do Repositório
 
-├── Diabetes_Predictive_Radar.pdf: Apresentação em slides resumindo o contexto clínico, a estratégia adotada e os resultados alcançados.
+├── Diabetes_Predictive_Radar.pdf   
+Apresentação em slides resumindo o contexto clínico, a estratégia adotada e os resultados alcançados.
 
-├── Projeto - Diabetes.ipynb: Notebook completo contendo a Análise Exploratória (EDA), desenvolvimento do modelo, análise SHAP e validação das hipóteses.
+├── Projeto - Diabetes.ipynb   
+Notebook completo contendo a Análise Exploratória (EDA), desenvolvimento do modelo, análise SHAP e validação das hipóteses.
 
-├── diabetes.py: Aplicação interativa para triagem desenvolvida em Streamlit.
+├── diabetes.py   
+Aplicação interativa para triagem desenvolvida em Streamlit.
 
-├── modelo_diabetes_vtl.pkl: Pipeline serializado do LGBM, incluindo transformadores e parâmetros de calibração.
+├── modelo_diabetes_vtl.pkl   
+Pipeline serializado do LGBM, incluindo transformadores e parâmetros de calibração.
 
-├── requirements.txt: Lista de dependências (Pandas, Scikit-Learn, LightGBM, Streamlit, SHAP).
+├── requirements.txt   
+Lista de dependências (Pandas, Scikit-Learn, LightGBM, Streamlit, SHAP).
 
-├── Gráficos Vetoriais (.svg): Curvas Recall-Precision, Brier Score, Separação de Classes e Matriz de Confusão exportadas em alta qualidade.
+├── Gráficos Vetoriais (.svg)  
+Curvas Recall-Precision, Brier Score, Separação de Classes e Matriz de Confusão exportadas em alta qualidade.
 
 ### 💻 Como Executar Localmente
 
